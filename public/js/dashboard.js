@@ -1,48 +1,105 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Map Initialization
-    if(document.getElementById('global-map')) {
-        const map = L.map('global-map').setView([20, 0], 2);
-        
-        // Minimalist light theme map
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
-            subdomains: 'abcd',
-            maxZoom: 20
-        }).addTo(map);
+    // 1. Number Animations using CountUp.js
+    const countOptions = {
+        useEasing: true,
+        useGrouping: true,
+        separator: ',',
+        decimal: '.',
+        duration: 2.5
+    };
 
-        const ships = [
-            {lat: 34.05, lng: -118.24, name: "MSC Oliver", status: "In Transit", risk: "Low"},
-            {lat: 35.67, lng: 139.65, name: "Maersk Mc-Kinney", status: "Docked", risk: "Low"},
-            {lat: 1.35, lng: 103.81, name: "CMA CGM Bougainville", status: "In Transit", risk: "Medium"},
-            {lat: 51.50, lng: -0.12, name: "Ever Given", status: "Delayed", risk: "High"},
-            {lat: -33.86, lng: 151.20, name: "COSCO Shipping", status: "In Transit", risk: "Low"},
-            {lat: 25.20, lng: 55.27, name: "Hapag-Lloyd Express", status: "In Transit", risk: "Low"}
-        ];
-
-        ships.forEach(ship => {
-            let color = 'var(--primary)';
-            if(ship.status === 'Delayed' || ship.risk === 'High') color = 'var(--danger)';
-            else if(ship.risk === 'Medium') color = 'var(--warning)';
-
-            const shipIcon = L.divIcon({
-                html: `<div style="background: white; border-radius: 50%; padding: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.05); display: inline-flex;"><span class="material-symbols-outlined" style="color: ${color}; font-size: 18px; font-weight: 300;">directions_boat</span></div>`,
-                className: 'custom-div-icon',
-                iconSize: [28, 28],
-                iconAnchor: [14, 14]
-            });
-
-            L.marker([ship.lat, ship.lng], {icon: shipIcon})
-             .bindPopup(`
-                <div style="font-family: 'Inter', sans-serif;">
-                    <b style="color: var(--secondary); font-size: 1rem; font-weight: 500;">${ship.name}</b><br>
-                    <span style="color: var(--text-muted); font-size: 0.8rem;">Status: <span style="color: ${color}">${ship.status}</span></span>
-                </div>
-             `)
-             .addTo(map);
-        });
+    if (document.getElementById('kpi-shipments')) {
+        let count1 = new countUp.CountUp('kpi-shipments', 12450, countOptions);
+        if (!count1.error) count1.start();
+    }
+    
+    if (document.getElementById('kpi-transit')) {
+        let count2 = new countUp.CountUp('kpi-transit', 8230, countOptions);
+        if (!count2.error) count2.start();
+    }
+    
+    if (document.getElementById('kpi-delayed')) {
+        let count3 = new countUp.CountUp('kpi-delayed', 142, countOptions);
+        if (!count3.error) count3.start();
+    }
+    
+    if (document.getElementById('kpi-revenue')) {
+        let options = {...countOptions, prefix: '$', suffix: 'M', decimalPlaces: 1};
+        let count4 = new countUp.CountUp('kpi-revenue', 4.2, options);
+        if (!count4.error) count4.start();
     }
 
-    // Chart.js Minimalist Settings
+    // 2. Global Fleet Live Tracking Map
+    if(document.getElementById('global-map')) {
+        window.globalMap = L.map('global-map', {
+            zoomControl: false,
+            attributionControl: false
+        }).setView([20, 10], 3);
+        
+        // Clean Minimal Light Theme (CartoDB Positron)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            subdomains: 'abcd',
+            maxZoom: 20
+        }).addTo(window.globalMap);
+
+        L.control.zoom({ position: 'topright' }).addTo(window.globalMap);
+
+        // Define ships with routes
+        const shipsData = [
+            { id: 1, lat: 34.05, lng: -118.24, name: "MSC Oliver", status: "transit", dest: "Shanghai", risk: "Low", eta: "2 Days" },
+            { id: 2, lat: 31.23, lng: 121.47, name: "Maersk Mc-Kinney", status: "delayed", dest: "Los Angeles", risk: "High", eta: "Unknown" },
+            { id: 3, lat: 1.35, lng: 103.81, name: "CMA CGM Bougainville", status: "transit", dest: "Rotterdam", risk: "Low", eta: "5 Days" },
+            { id: 4, lat: 51.50, lng: -0.12, name: "Ever Given", status: "transit", dest: "New York", risk: "Low", eta: "1 Day" },
+            { id: 5, lat: -33.86, lng: 151.20, name: "COSCO Shipping", status: "transit", dest: "Tokyo", risk: "Medium", eta: "12 Days" },
+            { id: 6, lat: 25.20, lng: 55.27, name: "Hapag-Lloyd Express", status: "transit", dest: "Singapore", risk: "Low", eta: "3 Days" },
+            { id: 7, lat: 29.97, lng: 32.55, name: "OOCL Hong Kong", status: "delayed", dest: "London", risk: "High", eta: "Delayed" }
+        ];
+
+        window.shipMarkers = {};
+
+        shipsData.forEach(ship => {
+            const shipIcon = L.divIcon({
+                html: `<div class="custom-ship-marker ${ship.status}" style="width: 16px; height: 16px;"></div>`,
+                className: '',
+                iconSize: [16, 16],
+                iconAnchor: [8, 8]
+            });
+
+            const popupContent = `
+                <div style="font-family: 'Inter', sans-serif; min-width: 180px; background: rgba(255,255,255,0.9); padding: 5px;">
+                    <div style="font-weight: 700; font-size: 1.1rem; color: #1F2937; margin-bottom: 5px;">${ship.name}</div>
+                    <div style="font-size: 0.85rem; color: #6B7280; margin-bottom: 10px;">Destination: <b style="color:#1F2937;">${ship.dest}</b></div>
+                    <div style="display: flex; justify-content: space-between; border-top: 1px solid #eee; padding-top: 8px;">
+                        <span style="font-size: 0.8rem; font-weight:600; color: ${ship.status==='delayed' ? '#EF4444' : '#22C55E'}">${ship.status.toUpperCase()}</span>
+                        <span style="font-size: 0.8rem; font-weight:600; color: #5DAEFF;">ETA: ${ship.eta}</span>
+                    </div>
+                </div>
+            `;
+
+            const marker = L.marker([ship.lat, ship.lng], {icon: shipIcon})
+             .bindPopup(popupContent)
+             .addTo(window.globalMap);
+             
+            window.shipMarkers[ship.id] = marker;
+        });
+
+        // Ship animation
+        setInterval(() => {
+            shipsData.forEach(ship => {
+                if (ship.status !== 'delayed') {
+                    ship.lng += (Math.random() * 0.5 - 0.2); 
+                    ship.lat += (Math.random() * 0.2 - 0.1);
+                    
+                    const marker = window.shipMarkers[ship.id];
+                    if(marker) {
+                        marker.setLatLng([ship.lat, ship.lng]);
+                    }
+                }
+            });
+        }, 2000);
+    }
+    
+    // 3. Chart.js Minimalist Settings & Initialization
     Chart.defaults.font.family = "'Inter', sans-serif";
     Chart.defaults.font.weight = "400";
     Chart.defaults.color = "#9CA3AF";
@@ -53,11 +110,9 @@ document.addEventListener('DOMContentLoaded', function() {
     Chart.defaults.plugins.tooltip.borderWidth = 1;
     Chart.defaults.plugins.tooltip.padding = 10;
     Chart.defaults.plugins.tooltip.cornerRadius = 8;
-    Chart.defaults.plugins.tooltip.boxPadding = 4;
     Chart.defaults.plugins.tooltip.titleFont = { size: 13, family: "'Inter', sans-serif", weight: '500' };
     Chart.defaults.plugins.tooltip.bodyFont = { size: 12, family: "'Inter', sans-serif" };
 
-    // Shipment Trend Chart (Minimalist Line)
     const ctxTrend = document.getElementById('shipmentTrendChart');
     if(ctxTrend) {
         new Chart(ctxTrend, {
@@ -113,7 +168,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Risk Trend Chart (Minimalist Doughnut)
     const ctxRisk = document.getElementById('riskChart');
     if(ctxRisk) {
         new Chart(ctxRisk, {
@@ -136,9 +190,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     legend: { display: false },
                     tooltip: {
                         callbacks: {
-                            label: function(context) {
-                                return ' ' + context.label + ': ' + context.parsed + '%';
-                            }
+                            label: function(context) { return ' ' + context.label + ': ' + context.parsed + '%'; }
                         }
                     }
                 }
@@ -146,7 +198,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Revenue Chart (Minimalist Bar)
     const ctxRevenue = document.getElementById('revenueChart');
     if(ctxRevenue) {
         new Chart(ctxRevenue, {
@@ -165,9 +216,7 @@ document.addEventListener('DOMContentLoaded', function() {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
-                },
+                plugins: { legend: { display: false } },
                 scales: {
                     y: { beginAtZero: true, grid: { borderDash: [4, 4], color: 'rgba(0,0,0,0.03)' }, border: {display: false}, ticks: {font: {size: 11}} },
                     x: { grid: { display: false }, border: {display: false}, ticks: {font: {size: 11}} }
@@ -176,3 +225,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// Function to focus map from clicking an alert
+window.focusMapAlert = function(lat, lng) {
+    if(window.globalMap) {
+        window.globalMap.flyTo([lat, lng], 6, {
+            animate: true,
+            duration: 1.5
+        });
+    }
+};
