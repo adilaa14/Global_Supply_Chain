@@ -2,51 +2,38 @@
 
 namespace App\Services;
 
-use App\Repositories\ShipmentRepositoryInterface;
-use App\Models\Shipment;
-use Exception;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
+use App\Repositories\ShipmentRepository;
+use Illuminate\Support\Facades\Cache;
 
 class ShipmentService
 {
-    protected ShipmentRepositoryInterface $shipmentRepository;
+    protected ShipmentRepository $shipmentRepository;
 
-    public function __construct(ShipmentRepositoryInterface $shipmentRepository)
+    public function __construct(ShipmentRepository $shipmentRepository)
     {
         $this->shipmentRepository = $shipmentRepository;
     }
 
-    /**
-     * Create a new shipment with strict business logic.
-     */
-    public function createShipment(array $data): Shipment
+    public function getAllShipments(?string $companyId)
     {
-        DB::beginTransaction();
-        try {
-            // Business Logic: Generate tracking code
-            $data['shipment_code'] = 'SHP-' . strtoupper(uniqid());
-            $data['status'] = 'preparing';
-            $data['risk_score'] = 0; // Default until async RiskService evaluates
-
-            $shipment = $this->shipmentRepository->create($data);
-
-            // Trigger events, notifications etc (e.g. event(new ShipmentCreated($shipment)))
-            
-            DB::commit();
-            return $shipment;
-            
-        } catch (Exception $e) {
-            DB::rollBack();
-            Log::error('Failed to create shipment: ' . $e->getMessage());
-            throw $e;
-        }
+        $cacheKey = "shipments.all.{$companyId}";
+        
+        return Cache::remember($cacheKey, 60, function () use ($companyId) {
+            return $this->shipmentRepository->getAllShipments($companyId);
+        });
     }
 
-    public function getShipmentDetails(string $uuid)
+    public function getShipmentById(?string $companyId, string $id)
     {
-        return $this->shipmentRepository->findById($uuid);
+        $cacheKey = "shipments.{$id}";
+        
+        return Cache::remember($cacheKey, 60, function () use ($companyId, $id) {
+            return $this->shipmentRepository->findById($companyId, $id);
+        });
     }
-    
-    // other enterprise features...
+
+    public function clearCache(?string $companyId)
+    {
+        Cache::forget("shipments.all.{$companyId}");
+    }
 }

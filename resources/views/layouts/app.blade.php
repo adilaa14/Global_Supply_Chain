@@ -26,17 +26,29 @@
                 <span class="nav-text">G-SCRI</span>
             </div>
             <ul class="sidebar-menu">
-                <li><a href="#" class="active"><span class="material-symbols-outlined">dashboard</span> <span class="nav-text">Dashboard</span></a></li>
-                <li><a href="#"><span class="material-symbols-outlined">local_shipping</span> <span class="nav-text">Shipments</span></a></li>
-                <li><a href="#"><span class="material-symbols-outlined">map</span> <span class="nav-text">World Map</span></a></li>
-                <li><a href="#"><span class="material-symbols-outlined">flag</span> <span class="nav-text">Countries</span></a></li>
-                <li><a href="#"><span class="material-symbols-outlined">anchor</span> <span class="nav-text">Ports</span></a></li>
-                <li><a href="#"><span class="material-symbols-outlined">partly_cloudy_day</span> <span class="nav-text">Weather</span></a></li>
-                <li><a href="#"><span class="material-symbols-outlined">currency_exchange</span> <span class="nav-text">Currency</span></a></li>
+                <li class="nav-section-title nav-text" style="padding: 10px 20px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase;">Core</li>
+                <li><a href="#" class="active"><span class="material-symbols-outlined">dashboard</span> <span class="nav-text">Global Dashboard</span></a></li>
+                <li><a href="#"><span class="material-symbols-outlined">local_shipping</span> <span class="nav-text">Shipment Management</span></a></li>
+                <li><a href="#"><span class="material-symbols-outlined">explore</span> <span class="nav-text">Live Tracking</span></a></li>
+                
+                <li class="nav-section-title nav-text" style="padding: 10px 20px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 10px;">Intelligence</li>
+                <li><a href="#"><span class="material-symbols-outlined">psychology</span> <span class="nav-text">Trade Intelligence</span></a></li>
+                <li><a href="#"><span class="material-symbols-outlined">alt_route</span> <span class="nav-text">Smart Redirect</span></a></li>
+                <li><a href="#"><span class="material-symbols-outlined">query_stats</span> <span class="nav-text">Profit Simulation</span></a></li>
+                <li><a href="#"><span class="material-symbols-outlined">compare_arrows</span> <span class="nav-text">Country Comparison</span></a></li>
+                <li><a href="#"><span class="material-symbols-outlined">shopping_basket</span> <span class="nav-text">Commodity Market</span></a></li>
+                
+                <li class="nav-section-title nav-text" style="padding: 10px 20px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 10px;">Global Data</li>
+                <li><a href="#"><span class="material-symbols-outlined">flag</span> <span class="nav-text">Country Directory</span></a></li>
+                <li><a href="#"><span class="material-symbols-outlined">partly_cloudy_day</span> <span class="nav-text">Weather Center</span></a></li>
+                <li><a href="#"><span class="material-symbols-outlined">currency_exchange</span> <span class="nav-text">Currency Center</span></a></li>
                 <li><a href="#"><span class="material-symbols-outlined">security</span> <span class="nav-text">Risk Intelligence</span></a></li>
+                
+                <li class="nav-section-title nav-text" style="padding: 10px 20px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 10px;">System</li>
                 <li><a href="#"><span class="material-symbols-outlined">analytics</span> <span class="nav-text">Analytics</span></a></li>
-                <li><a href="#"><span class="material-symbols-outlined">newspaper</span> <span class="nav-text">News</span></a></li>
                 <li><a href="#"><span class="material-symbols-outlined">summarize</span> <span class="nav-text">Reports</span></a></li>
+                <li><a href="#"><span class="material-symbols-outlined">business</span> <span class="nav-text">Company Profile</span></a></li>
+                <li><a href="#"><span class="material-symbols-outlined">settings</span> <span class="nav-text">System Settings</span></a></li>
             </ul>
 
             <div class="sidebar-cta">

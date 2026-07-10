@@ -15,57 +15,49 @@ class Shipment extends Model
 
     protected $guarded = [];
     
-    // Automatically cast attributes
     protected $casts = [
         'departure_date' => 'datetime',
         'estimated_arrival' => 'datetime',
         'actual_arrival' => 'datetime',
-        'shipping_cost' => 'decimal:2',
-        'insurance_cost' => 'decimal:2',
-        'latitude' => 'decimal:6',
-        'longitude' => 'decimal:6',
     ];
 
-    /**
-     * Relationships
-     */
-    public function user(): BelongsTo
+    public function company(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Company::class);
     }
 
-    public function ship(): BelongsTo
+    public function items(): HasMany
     {
-        return $this->belongsTo(Ship::class);
+        return $this->hasMany(ShipmentItem::class);
     }
 
-    public function container(): BelongsTo
+    public function containers(): HasMany
     {
-        return $this->belongsTo(Container::class);
+        return $this->hasMany(ShipmentContainer::class);
     }
 
-    public function originCountry(): BelongsTo
+    public function documents(): HasMany
     {
-        return $this->belongsTo(Country::class, 'origin_country_id');
-    }
-
-    public function destinationCountry(): BelongsTo
-    {
-        return $this->belongsTo(Country::class, 'destination_country_id');
-    }
-
-    public function originPort(): BelongsTo
-    {
-        return $this->belongsTo(Port::class, 'origin_port_id');
-    }
-
-    public function destinationPort(): BelongsTo
-    {
-        return $this->belongsTo(Port::class, 'destination_port_id');
+        return $this->hasMany(ShipmentDocument::class);
     }
 
     public function histories(): HasMany
     {
         return $this->hasMany(ShipmentHistory::class);
+    }
+
+    public function statusLogs(): HasMany
+    {
+        return $this->hasMany(ShipmentStatusLog::class);
+    }
+
+    public function notes(): HasMany
+    {
+        return $this->hasMany(ShipmentNote::class);
+    }
+
+    public function tags(): HasMany
+    {
+        return $this->hasMany(ShipmentTag::class);
     }
 }

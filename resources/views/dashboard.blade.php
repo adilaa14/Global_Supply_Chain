@@ -64,6 +64,31 @@
         </div>
     </div>
 
+    <!-- AI Executive Summary Row (NEW) -->
+    <div class="row g-4 mb-4 fade-up" style="animation-delay: 0.45s;">
+        <div class="col-12">
+            <div class="panel-card" style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.15) 100%); border-left: 4px solid var(--primary);">
+                <div class="d-flex align-items-start gap-3">
+                    <div class="stat-icon" style="background: var(--primary); color: white; width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 15px rgba(240, 49, 100, 0.4);">
+                        <span class="material-symbols-outlined" style="font-size: 24px;">psychology</span>
+                    </div>
+                    <div>
+                        <h5 class="panel-title mb-2 fw-bold" style="font-size: 1.1rem;">AI Executive Summary</h5>
+                        <p class="mb-1 text-secondary" style="font-size: 0.95rem; font-weight: 500;">
+                            Current highest demand is <span class="text-primary fw-bold">Japan</span> for <span class="fw-bold">Coffee</span>. Palm Oil price is increasing (+2.4%). USA import demand decreased by 1.2%.
+                        </p>
+                        <p class="mb-0 text-danger-custom fw-bold" style="font-size: 0.95rem;">
+                            Recommendation: Shipment SHP-001 should be redirected to South Korea. Expected additional profit: USD 250,000.
+                        </p>
+                    </div>
+                    <div class="ms-auto">
+                        <button class="btn-primary-custom" style="padding: 8px 20px; font-size: 0.85rem;">Review Redirect</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Main Dashboard Row -->
     <div class="row g-4 mb-4 fade-up" style="animation-delay: 0.5s;">
         <!-- Global Map (70%) -->
@@ -132,6 +157,86 @@
                             <span class="text-danger-custom" style="font-size: 0.75rem;">Critical Impact • Rerouting active</span>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    </div>
+
+    <!-- Trade Intelligence & Commodities Row (NEW) -->
+    <div class="row g-4 mb-4 fade-up" style="animation-delay: 0.55s;">
+        <!-- Trade Intelligence -->
+        <div class="col-xl-6">
+            <div class="panel-card">
+                <div class="panel-header mb-3">
+                    <h5 class="panel-title">Trade Intelligence</h5>
+                    <span class="badge bg-light text-primary border" style="font-weight: 600;">Live</span>
+                </div>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="p-3 rounded-4" style="background: rgba(255,255,255,0.4); border: 1px solid var(--glass-border);">
+                            <span class="text-muted d-block mb-1" style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">Best Export Market</span>
+                            <span class="fw-bold text-secondary d-flex justify-content-between align-items-center">
+                                Japan <span class="text-success-custom">Demand High</span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 rounded-4" style="background: rgba(255,255,255,0.4); border: 1px solid var(--glass-border);">
+                            <span class="text-muted d-block mb-1" style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">Fastest Growing</span>
+                            <span class="fw-bold text-secondary d-flex justify-content-between align-items-center">
+                                India <span class="text-success-custom">+12.4%</span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 rounded-4" style="background: rgba(255,255,255,0.4); border: 1px solid var(--glass-border);">
+                            <span class="text-muted d-block mb-1" style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">Highest Profit Opp.</span>
+                            <span class="fw-bold text-secondary d-flex justify-content-between align-items-center">
+                                South Korea <span class="text-primary fw-bold">Coffee</span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 rounded-4" style="background: rgba(255,255,255,0.4); border: 1px solid var(--glass-border);">
+                            <span class="text-muted d-block mb-1" style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">Safest Destination</span>
+                            <span class="fw-bold text-secondary d-flex justify-content-between align-items-center">
+                                Singapore <span class="text-success-custom">Risk Score: 12</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Commodity Market Snapshot -->
+        <div class="col-xl-6">
+            <div class="panel-card">
+                <div class="panel-header mb-3">
+                    <h5 class="panel-title">Commodity Market Snapshot</h5>
+                    <a href="#" style="color: var(--primary); font-size: 0.85rem; font-weight: 600; text-decoration: none;">Full Market</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-borderless align-middle mb-0" style="font-size: 0.9rem;">
+                        <tbody>
+                            <tr style="border-bottom: 1px solid var(--glass-border);">
+                                <td class="fw-bold text-secondary" style="padding-left: 0;">Coffee (Arabica)</td>
+                                <td class="text-end fw-bold">$4.12 / kg</td>
+                                <td class="text-end text-success-custom">+2.4% <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: text-bottom;">trending_up</span></td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid var(--glass-border);">
+                                <td class="fw-bold text-secondary" style="padding-left: 0;">Palm Oil (CPO)</td>
+                                <td class="text-end fw-bold">$850.00 / MT</td>
+                                <td class="text-end text-success-custom">+1.1% <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: text-bottom;">trending_up</span></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-secondary" style="padding-left: 0;">Nickel</td>
+                                <td class="text-end fw-bold">$18,200 / MT</td>
+                                <td class="text-end text-danger-custom">-0.8% <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: text-bottom;">trending_down</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

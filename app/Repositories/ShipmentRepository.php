@@ -3,40 +3,37 @@
 namespace App\Repositories;
 
 use App\Models\Shipment;
-use Illuminate\Database\Eloquent\Collection;
 
-class ShipmentRepository implements ShipmentRepositoryInterface
+class ShipmentRepository
 {
-    public function getAll(): Collection
+    public function getAllShipments(?string $companyId)
     {
-        return Shipment::with(['originCountry', 'destinationCountry', 'originPort', 'destinationPort'])->get();
+        return Shipment::where('company_id', $companyId)
+            ->with(['items', 'containers'])
+            ->latest()
+            ->paginate(15);
     }
 
-    public function findById(string $uuid): ?Shipment
+    public function findById(?string $companyId, string $id)
     {
-        return Shipment::with(['histories', 'ship', 'container'])->find($uuid);
+        return Shipment::where('company_id', $companyId)
+            ->with(['items', 'containers', 'documents', 'histories', 'statusLogs', 'notes', 'tags'])
+            ->findOrFail($id);
     }
 
-    public function create(array $data): Shipment
+    public function create(array $data)
     {
         return Shipment::create($data);
     }
 
-    public function update(string $uuid, array $data): bool
+    public function update(Shipment $shipment, array $data)
     {
-        $shipment = Shipment::find($uuid);
-        if (!$shipment) {
-            return false;
-        }
-        return $shipment->update($data);
+        $shipment->update($data);
+        return $shipment;
     }
 
-    public function delete(string $uuid): bool
+    public function delete(Shipment $shipment)
     {
-        $shipment = Shipment::find($uuid);
-        if (!$shipment) {
-            return false;
-        }
         return $shipment->delete();
     }
 }
