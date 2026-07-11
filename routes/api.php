@@ -46,4 +46,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/documents', [ShipmentDocumentController::class, 'store']);
         Route::post('/containers', [ShipmentContainerController::class, 'store']);
     });
+
+    // Tracking API
+    Route::prefix('tracking')->group(function () {
+        Route::get('/map-data', [\App\Http\Controllers\Api\VesselController::class, 'globalMapData']);
+        Route::get('/vessels/{id}/live', [\App\Http\Controllers\Api\VesselController::class, 'liveData']);
+    });
 });

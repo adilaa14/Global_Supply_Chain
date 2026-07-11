@@ -60,4 +60,34 @@ class Shipment extends Model
     {
         return $this->hasMany(ShipmentTag::class);
     }
+
+    public function originCountry(): BelongsTo
+    {
+        return $this->belongsTo(Country::class, 'origin_country_id');
+    }
+
+    public function destinationCountry(): BelongsTo
+    {
+        return $this->belongsTo(Country::class, 'destination_country_id');
+    }
+
+    public function originPort(): BelongsTo
+    {
+        return $this->belongsTo(Port::class, 'origin_port_id');
+    }
+
+    public function destinationPort(): BelongsTo
+    {
+        return $this->belongsTo(Port::class, 'destination_port_id');
+    }
+
+    public function commodity(): BelongsTo
+    {
+        return $this->belongsTo(Commodity::class);
+    }
+
+    public function vessel(): BelongsTo
+    {
+        return $this->belongsTo(Vessel::class);
+    }
 }

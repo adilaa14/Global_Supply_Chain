@@ -28,9 +28,9 @@ export default function AuthenticatedLayout({
                     </div>
                     <ul className="sidebar-menu">
                         <li className="nav-section-title nav-text" style={{ padding: '10px 20px', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '1px', textTransform: 'uppercase' }}>Core</li>
-                        <li><Link href="/dashboard" className="active"><span className="material-symbols-outlined">dashboard</span> <span className="nav-text">Global Dashboard</span></Link></li>
-                        <li><a href="#"><span className="material-symbols-outlined">local_shipping</span> <span className="nav-text">Shipment Management</span></a></li>
-                        <li><a href="#"><span className="material-symbols-outlined">explore</span> <span className="nav-text">Live Tracking</span></a></li>
+                        <li><Link href={route('dashboard')} className={route().current('dashboard') ? 'active' : ''}><span className="material-symbols-outlined">dashboard</span> <span className="nav-text">Global Dashboard</span></Link></li>
+                        <li><Link href="/shipments" className={route().current('shipments.*') ? 'active' : ''}><span className="material-symbols-outlined">local_shipping</span> <span className="nav-text">Shipment Management</span></Link></li>
+                        <li><Link href="/tracking" className={route().current('tracking.*') ? 'active' : ''}><span className="material-symbols-outlined">explore</span> <span className="nav-text">Live Tracking</span></Link></li>
                         
                         <li className="nav-section-title nav-text" style={{ padding: '10px 20px', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '1px', textTransform: 'uppercase', marginTop: '10px' }}>Intelligence</li>
                         <li><a href="#"><span className="material-symbols-outlined">psychology</span> <span className="nav-text">Trade Intelligence</span></a></li>

@@ -1,7 +1,18 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+// Fix for default marker icons in React-Leaflet
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+});
 
 export default function Dashboard() {
     const [summary, setSummary] = useState<any>({
@@ -14,6 +25,7 @@ export default function Dashboard() {
     });
     
     const [alerts, setAlerts] = useState<any[]>([]);
+    const [shipments, setShipments] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -33,6 +45,12 @@ export default function Dashboard() {
                 const alertsRes = await axios.get('/api/dashboard/alerts?limit=5');
                 if (alertsRes.data.status === 'success') {
                     setAlerts(alertsRes.data.data);
+                }
+                
+                // Fetch shipments for map
+                const shipmentsRes = await axios.get('/api/shipments');
+                if (shipmentsRes.data.status === 'success') {
+                    setShipments(shipmentsRes.data.data.data || []);
                 }
             } catch (error) {
                 console.error("Error fetching dashboard data:", error);
@@ -69,10 +87,10 @@ export default function Dashboard() {
                         <p className="text-muted mb-0">Real-time intelligence on global supply chain operations.</p>
                     </div>
                     <div>
-                        <button className="btn-primary-custom d-flex align-items-center gap-2">
+                        <Link href="/shipments/create" className="btn-primary-custom d-flex align-items-center gap-2" style={{ textDecoration: 'none' }}>
                             <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>add</span>
                             Create Shipment
-                        </button>
+                        </Link>
                     </div>
                 </div>
 
@@ -136,8 +154,27 @@ export default function Dashboard() {
                                     <span className="badge bg-light text-dark border"><span className="text-danger">●</span> {summary.metrics?.delayed_shipments || 0} Delayed</span>
                                 </div>
                             </div>
-                            <div className="flex-grow-1" style={{ minHeight: '400px', background: 'rgba(255,255,255,0.3)', borderRadius: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <span className="text-muted">Interactive Map Engine Connected</span>
+                            <div className="flex-grow-1" style={{ minHeight: '400px', borderRadius: '15px', overflow: 'hidden' }}>
+                                <MapContainer center={[20, 0]} zoom={2} style={{ height: '100%', width: '100%', zIndex: 1 }}>
+                                    <TileLayer
+                                        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+                                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                                    />
+                                    {shipments.map((shipment: any) => {
+                                        // Randomize slightly for demo since we don't have real coordinates yet
+                                        const lat = (Math.random() * 80) - 40;
+                                        const lng = (Math.random() * 180) - 90;
+                                        return (
+                                            <Marker key={shipment.id} position={[lat, lng]}>
+                                                <Popup>
+                                                    <strong>{shipment.shipment_number}</strong><br/>
+                                                    Status: {shipment.status}<br/>
+                                                    Type: {shipment.shipment_type}
+                                                </Popup>
+                                            </Marker>
+                                        );
+                                    })}
+                                </MapContainer>
                             </div>
                         </div>
                     </div>
