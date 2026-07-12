@@ -33,10 +33,10 @@ export default function AuthenticatedLayout({
                         <li><Link href="/tracking" className={route().current('tracking.*') ? 'active' : ''}><span className="material-symbols-outlined">explore</span> <span className="nav-text">Live Tracking</span></Link></li>
                         
                         <li className="nav-section-title nav-text" style={{ padding: '10px 20px', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '1px', textTransform: 'uppercase', marginTop: '10px' }}>Intelligence</li>
-                        <li><a href="#"><span className="material-symbols-outlined">psychology</span> <span className="nav-text">Trade Intelligence</span></a></li>
+                        <li><Link href="/intelligence/countries" className={route().current('intelligence.countries.*') && !route().current('intelligence.countries.compare') ? 'active' : ''}><span className="material-symbols-outlined">psychology</span> <span className="nav-text">Country Intelligence</span></Link></li>
+                        <li><Link href="/intelligence/countries/compare" className={route().current('intelligence.countries.compare') ? 'active' : ''}><span className="material-symbols-outlined">compare_arrows</span> <span className="nav-text">Country Comparison</span></Link></li>
                         <li><a href="#"><span className="material-symbols-outlined">alt_route</span> <span className="nav-text">Smart Redirect</span></a></li>
                         <li><a href="#"><span className="material-symbols-outlined">query_stats</span> <span className="nav-text">Profit Simulation</span></a></li>
-                        <li><a href="#"><span className="material-symbols-outlined">compare_arrows</span> <span className="nav-text">Country Comparison</span></a></li>
                         <li><a href="#"><span className="material-symbols-outlined">shopping_basket</span> <span className="nav-text">Commodity Market</span></a></li>
                         
                         <li className="nav-section-title nav-text" style={{ padding: '10px 20px', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '1px', textTransform: 'uppercase', marginTop: '10px' }}>System</li>

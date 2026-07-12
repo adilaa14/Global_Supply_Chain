@@ -37,6 +37,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/vessels', [\App\Http\Controllers\VesselWebController::class, 'list'])->name('vessels');
         Route::get('/vessels/{id}', [\App\Http\Controllers\VesselWebController::class, 'show'])->name('vessel.show');
     });
+
+    // Country Intelligence Web Routes
+    Route::prefix('intelligence')->name('intelligence.')->group(function () {
+        Route::get('/countries', [\App\Http\Controllers\CountryIntelligenceWebController::class, 'index'])->name('countries.index');
+        Route::get('/countries/compare', [\App\Http\Controllers\CountryIntelligenceWebController::class, 'compare'])->name('countries.compare');
+        Route::get('/countries/{id}', [\App\Http\Controllers\CountryIntelligenceWebController::class, 'show'])->name('countries.show');
+    });
 });
 
 require __DIR__.'/auth.php';

@@ -20,6 +20,7 @@ export default function VesselDetail({ vesselId }: { vesselId: string }) {
     const [liveData, setLiveData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [simPosition, setSimPosition] = useState<[number, number] | null>(null);
+    const [autoPan, setAutoPan] = useState(true);
 
     useEffect(() => {
         const fetchLiveData = async () => {
@@ -118,30 +119,35 @@ export default function VesselDetail({ vesselId }: { vesselId: string }) {
     }
 
     // Determine the planned path for the map by filtering out waypoints we have already passed
-    let remainingGeometry = [];
-    if (liveData.route_geometry && liveData.route_geometry.length > 0) {
-        let closestIdx = 0;
-        let minD = 999999;
-        for (let i = 0; i < liveData.route_geometry.length; i++) {
-            const wp = liveData.route_geometry[i];
-            const dist = Math.sqrt(Math.pow(wp[0] - simPosition[0], 2) + Math.pow(wp[1] - simPosition[1], 2));
-            if (dist < minD) {
-                minD = dist;
-                closestIdx = i;
+        let remainingGeometry: [number, number][] = [];
+        let travelledGeometry: [number, number][] = [];
+
+        if (simPosition && liveData && liveData.route_geometry) {
+            let closestIdx = 0;
+            let minDist = 999999;
+            for (let i = 0; i < liveData.route_geometry.length; i++) {
+                const wp = liveData.route_geometry[i];
+                const dist = Math.sqrt(Math.pow(wp[0] - simPosition[0], 2) + Math.pow(wp[1] - simPosition[1], 2));
+                if (dist < minDist) {
+                    minDist = dist;
+                    closestIdx = i;
+                }
+            }
+            
+            // Travelled route snaps to the exact geometry path to prevent straight-line corner cutting across land
+            travelledGeometry = liveData.route_geometry.slice(0, closestIdx + 1);
+            
+            remainingGeometry = [liveData.route_geometry[liveData.route_geometry.length - 1]];
+            for (let i = closestIdx + 1; i < liveData.route_geometry.length; i++) {
+                const wp = liveData.route_geometry[i];
+                const dist = Math.sqrt(Math.pow(wp[0] - simPosition[0], 2) + Math.pow(wp[1] - simPosition[1], 2));
+                if (dist > 0.01) {
+                    remainingGeometry = liveData.route_geometry.slice(i);
+                    break;
+                }
             }
         }
         
-        remainingGeometry = [liveData.route_geometry[liveData.route_geometry.length - 1]];
-        for (let i = closestIdx + 1; i < liveData.route_geometry.length; i++) {
-            const wp = liveData.route_geometry[i];
-            const dist = Math.sqrt(Math.pow(wp[0] - simPosition[0], 2) + Math.pow(wp[1] - simPosition[1], 2));
-            if (dist > 0.01) {
-                remainingGeometry = liveData.route_geometry.slice(i);
-                break;
-            }
-        }
-    }
-
     const plannedPath = remainingGeometry.length > 0
         ? [simPosition, ...remainingGeometry] 
         : (liveData.destination_coords ? [simPosition, liveData.destination_coords] : null);
@@ -221,9 +227,17 @@ export default function VesselDetail({ vesselId }: { vesselId: string }) {
                         <div className="panel-card p-0 h-100 overflow-hidden d-flex flex-column" style={{ minHeight: '500px' }}>
                             <div className="p-3 border-bottom d-flex justify-content-between align-items-center bg-white">
                                 <h5 className="panel-title mb-0">Live Position</h5>
-                                <button className="btn btn-sm btn-outline-secondary rounded-pill d-flex align-items-center gap-1">
-                                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>fullscreen</span>
-                                </button>
+                                <div className="d-flex align-items-center">
+                                    {!autoPan && (
+                                        <button onClick={() => setAutoPan(true)} className="btn btn-sm btn-primary rounded-pill d-flex align-items-center gap-1 me-2 shadow-sm">
+                                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>my_location</span>
+                                            Follow Vessel
+                                        </button>
+                                    )}
+                                    <button className="btn btn-sm btn-outline-secondary rounded-pill d-flex align-items-center gap-1">
+                                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>fullscreen</span>
+                                    </button>
+                                </div>
                             </div>
                             <div className="flex-grow-1">
                                 <MapContainer center={simPosition} zoom={7} style={{ height: '100%', width: '100%', zIndex: 1 }}>
@@ -246,10 +260,10 @@ export default function VesselDetail({ vesselId }: { vesselId: string }) {
                                         </Marker>
                                     )}
 
-                                    {/* Travelled Route (Solid) */}
-                                    {liveData.history && liveData.history.length > 1 && (
+                                    {/* Travelled Route (Solid) - Snapped to Geometry */}
+                                    {travelledGeometry.length > 0 && simPosition && (
                                         <Polyline 
-                                            positions={[...liveData.history, simPosition]} 
+                                            positions={[...travelledGeometry, simPosition]} 
                                             pathOptions={{ color: '#F03164', weight: 4, opacity: 0.8 }} 
                                         />
                                     )}
@@ -280,7 +294,7 @@ export default function VesselDetail({ vesselId }: { vesselId: string }) {
                                     </Marker>
 
                                     {/* Auto-Centering Component */}
-                                    <MapUpdater center={simPosition} />
+                                    <MapUpdater center={simPosition} autoPan={autoPan} setAutoPan={setAutoPan} />
                                 </MapContainer>
                             </div>
                         </div>
@@ -293,13 +307,22 @@ export default function VesselDetail({ vesselId }: { vesselId: string }) {
 
 // Child component to handle map auto-panning
 import { useMap } from 'react-leaflet';
-function MapUpdater({ center }: { center: [number, number] }) {
+function MapUpdater({ center, autoPan, setAutoPan }: { center: [number, number], autoPan: boolean, setAutoPan: (v: boolean) => void }) {
     const map = useMap();
     useEffect(() => {
-        // Only pan if it moves off-screen or significant distance to avoid jerky UI when dragging
-        if (map && center) {
+        if (map && center && autoPan) {
             map.panTo(center, { animate: true, duration: 1 });
         }
-    }, [center, map]);
+    }, [center, map, autoPan]);
+
+    useEffect(() => {
+        const disableAutoPan = () => setAutoPan(false);
+        map.on('dragstart', disableAutoPan);
+        map.on('zoomstart', disableAutoPan);
+        return () => {
+            map.off('dragstart', disableAutoPan);
+            map.off('zoomstart', disableAutoPan);
+        };
+    }, [map, setAutoPan]);
     return null;
 }

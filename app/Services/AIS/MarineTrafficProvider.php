@@ -46,23 +46,6 @@ class MarineTrafficProvider implements AISProviderInterface
                         }
                     }
 
-                    // Scan FORWARD from the closest waypoint to find the next target
-                    // Starting at closestIndex + 1 ensures the ship NEVER turns around!
-                    $target = end($geometry);
-                    for ($i = $closestIndex + 1; $i < count($geometry); $i++) {
-                        $wp = $geometry[$i];
-                        $dist = sqrt(pow($wp[0] - $lat, 2) + pow($wp[1] - $lng, 2));
-                        if ($dist > 0.01) { // Target something at least 1km away
-                            $target = $wp;
-                            break;
-                        }
-                    }
-
-                    $dLatTarget = $target[0] - $lat;
-                    $dLngTarget = $target[1] - $lng;
-                    
-                    $angle = atan2($dLngTarget, $dLatTarget);
-                    
                     // Time-based smooth movement (20x Hyper Drive for Demo)
                     $timeDiffSeconds = time() - strtotime($lastPos->timestamp);
                     if ($timeDiffSeconds <= 0 || $timeDiffSeconds > 300) {
@@ -71,12 +54,38 @@ class MarineTrafficProvider implements AISProviderInterface
                     
                     $speedKnots = $lastPos->speed ?? 20;
                     $degreesPerSecond = ($speedKnots / 100000) * 20; // Exactly matches frontend
-                    $speedFactor = $degreesPerSecond * $timeDiffSeconds;
+                    $distanceToMove = $degreesPerSecond * $timeDiffSeconds;
+
+                    // Walk the polyline to prevent overshooting
+                    $currentLat = $lat;
+                    $currentLng = $lng;
+                    $currentIndex = $closestIndex;
+                    $finalAngle = 0;
+
+                    while ($distanceToMove > 0 && $currentIndex < count($geometry) - 1) {
+                        $wp = $geometry[$currentIndex + 1];
+                        $distToWp = sqrt(pow($wp[0] - $currentLat, 2) + pow($wp[1] - $currentLng, 2));
+                        
+                        $dLat = $wp[0] - $currentLat;
+                        $dLng = $wp[1] - $currentLng;
+                        $finalAngle = atan2($dLng, $dLat);
+
+                        if ($distToWp <= $distanceToMove) {
+                            $currentLat = $wp[0];
+                            $currentLng = $wp[1];
+                            $distanceToMove -= $distToWp;
+                            $currentIndex++;
+                        } else {
+                            $currentLat += cos($finalAngle) * $distanceToMove;
+                            $currentLng += sin($finalAngle) * $distanceToMove;
+                            $distanceToMove = 0;
+                        }
+                    }
+
+                    $lat = $currentLat;
+                    $lng = $currentLng;
                     
-                    $lat += cos($angle) * $speedFactor;
-                    $lng += sin($angle) * $speedFactor;
-                    
-                    $heading = $angle * (180 / pi());
+                    $heading = $finalAngle * (180 / pi());
                     if ($heading < 0) $heading += 360;
                 }
             } else {

@@ -52,4 +52,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/map-data', [\App\Http\Controllers\Api\VesselController::class, 'globalMapData']);
         Route::get('/vessels/{id}/live', [\App\Http\Controllers\Api\VesselController::class, 'liveData']);
     });
+
+    // Country Intelligence API
+    Route::prefix('countries')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\CountryController::class, 'index']);
+        Route::get('/list', [\App\Http\Controllers\Api\CountryController::class, 'listAll']);
+        Route::get('/comparison', [\App\Http\Controllers\Api\CountryComparisonController::class, 'index']);
+        Route::get('/risk', [\App\Http\Controllers\Api\CountryRiskController::class, 'index']);
+        Route::get('/economy', [\App\Http\Controllers\Api\CountryEconomyController::class, 'index']);
+        Route::get('/trade', [\App\Http\Controllers\Api\CountryTradeController::class, 'index']);
+        Route::get('/opportunity', [\App\Http\Controllers\Api\CountryController::class, 'opportunity']);
+        Route::get('/{id}', [\App\Http\Controllers\Api\CountryController::class, 'show']);
+    });
 });

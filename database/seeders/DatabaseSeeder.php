@@ -107,5 +107,13 @@ class DatabaseSeeder extends Seeder
         if (!$exporter->hasRole('Exporter')) {
             $exporter->assignRole($exporterRole);
         }
+
+        // 7. Run additional seeders
+        $this->call([
+            DashboardCoreSeeder::class,
+            ShipmentSeeder::class,
+            VesselSeeder::class,
+            CountryIntelligenceSeeder::class,
+        ]);
     }
 }
