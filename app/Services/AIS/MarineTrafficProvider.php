@@ -26,9 +26,63 @@ class MarineTrafficProvider implements AISProviderInterface
         $lastPos = $vessel ? $vessel->latestPosition : null;
 
         if ($lastPos) {
-            $lat = $lastPos->latitude + (rand(-10, 10) / 1000);
-            $lng = $lastPos->longitude + (rand(-10, 10) / 1000);
+            $lat = $lastPos->latitude;
+            $lng = $lastPos->longitude;
             $heading = $lastPos->heading;
+
+            $route = \App\Models\VesselRoute::where('vessel_id', $vessel->id)->where('is_active', true)->first();
+            if ($route && $route->route_geometry) {
+                $geometry = json_decode($route->route_geometry, true);
+                if (count($geometry) > 1) {
+                    // Find the next waypoint that is sufficiently far away (hasn't been reached yet)
+                    // Find the absolute closest waypoint to current position
+                    $closestIndex = 0;
+                    $minDist = 999999;
+                    foreach ($geometry as $index => $wp) {
+                        $dist = sqrt(pow($wp[0] - $lat, 2) + pow($wp[1] - $lng, 2));
+                        if ($dist < $minDist) {
+                            $minDist = $dist;
+                            $closestIndex = $index;
+                        }
+                    }
+
+                    // Scan FORWARD from the closest waypoint to find the next target
+                    // Starting at closestIndex + 1 ensures the ship NEVER turns around!
+                    $target = end($geometry);
+                    for ($i = $closestIndex + 1; $i < count($geometry); $i++) {
+                        $wp = $geometry[$i];
+                        $dist = sqrt(pow($wp[0] - $lat, 2) + pow($wp[1] - $lng, 2));
+                        if ($dist > 0.01) { // Target something at least 1km away
+                            $target = $wp;
+                            break;
+                        }
+                    }
+
+                    $dLatTarget = $target[0] - $lat;
+                    $dLngTarget = $target[1] - $lng;
+                    
+                    $angle = atan2($dLngTarget, $dLatTarget);
+                    
+                    // Time-based smooth movement (20x Hyper Drive for Demo)
+                    $timeDiffSeconds = time() - strtotime($lastPos->timestamp);
+                    if ($timeDiffSeconds <= 0 || $timeDiffSeconds > 300) {
+                        $timeDiffSeconds = 60; // fallback to 1 minute
+                    }
+                    
+                    $speedKnots = $lastPos->speed ?? 20;
+                    $degreesPerSecond = ($speedKnots / 100000) * 20; // Exactly matches frontend
+                    $speedFactor = $degreesPerSecond * $timeDiffSeconds;
+                    
+                    $lat += cos($angle) * $speedFactor;
+                    $lng += sin($angle) * $speedFactor;
+                    
+                    $heading = $angle * (180 / pi());
+                    if ($heading < 0) $heading += 360;
+                }
+            } else {
+                $lat += (rand(-10, 10) / 1000);
+                $lng += (rand(-10, 10) / 1000);
+            }
         } else {
             $lat = (float) rand(-4000, 4000) / 100;
             $lng = (float) rand(-10000, 10000) / 100;

@@ -83,6 +83,9 @@ class TrackingService
                 (float)$route->destinationPort->longitude
             ];
             $livePosition['destination_name'] = $route->destinationPort->port_name;
+            if ($route->route_geometry) {
+                $livePosition['route_geometry'] = json_decode($route->route_geometry, true);
+            }
         }
 
         return $livePosition;

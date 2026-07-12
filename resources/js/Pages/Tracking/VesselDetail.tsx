@@ -24,7 +24,8 @@ export default function VesselDetail({ vesselId }: { vesselId: string }) {
     useEffect(() => {
         const fetchLiveData = async () => {
             try {
-                const res = await axios.get(`/api/tracking/vessels/${vesselId}/live`);
+                // Append timestamp to prevent aggressive browser caching of the old corrupted history
+                const res = await axios.get(`/api/tracking/vessels/${vesselId}/live?t=${new Date().getTime()}`);
                 if (res.data.status === 'success') {
                     setLiveData(res.data.data);
                     setSimPosition([res.data.data.latitude, res.data.data.longitude]);
@@ -46,14 +47,46 @@ export default function VesselDetail({ vesselId }: { vesselId: string }) {
         if (!liveData || !simPosition) return;
         
         // speed in knots -> degree per frame (rough approx for visual effect)
-        const speedFactor = (liveData.speed / 100000) * 2; 
-        const headingRad = liveData.heading * (Math.PI / 180);
-
-        const dLat = Math.cos(headingRad) * speedFactor;
-        const dLng = Math.sin(headingRad) * speedFactor;
+        // Multiplied by 20 so it's extremely obvious to the user that it is moving
+        const speedFactor = Math.max((liveData.speed / 100000) * 20, 0.002); 
 
         const simInterval = setInterval(() => {
-            setSimPosition(prev => prev ? [prev[0] + dLat, prev[1] + dLng] : prev);
+            setSimPosition(prev => {
+                if (!prev) return prev;
+                
+                let headingRad = liveData.heading * (Math.PI / 180);
+                
+                // If we have a planned route, override heading to steer exactly towards the next unreached sea waypoint
+                if (liveData.route_geometry && liveData.route_geometry.length > 1) {
+                    let closestIndex = 0;
+                    let minDist = 999999;
+                    for (let i = 0; i < liveData.route_geometry.length; i++) {
+                        const wp = liveData.route_geometry[i];
+                        const dist = Math.sqrt(Math.pow(wp[0] - prev[0], 2) + Math.pow(wp[1] - prev[1], 2));
+                        if (dist < minDist) {
+                            minDist = dist;
+                            closestIndex = i;
+                        }
+                    }
+
+                    let nextWP = liveData.route_geometry[liveData.route_geometry.length - 1];
+                    for (let i = closestIndex + 1; i < liveData.route_geometry.length; i++) {
+                        const wp = liveData.route_geometry[i];
+                        const dist = Math.sqrt(Math.pow(wp[0] - prev[0], 2) + Math.pow(wp[1] - prev[1], 2));
+                        if (dist > 0.01) {
+                            nextWP = wp;
+                            break;
+                        }
+                    }
+                    // atan2(x, y) where x is dLng, y is dLat gives navigation bearing (0=North, pi/2=East)
+                    headingRad = Math.atan2(nextWP[1] - prev[1], nextWP[0] - prev[0]);
+                }
+
+                const dLat = Math.cos(headingRad) * speedFactor;
+                const dLng = Math.sin(headingRad) * speedFactor;
+                
+                return [prev[0] + dLat, prev[1] + dLng];
+            });
         }, 1000); // update every second
 
         return () => clearInterval(simInterval);
@@ -83,6 +116,35 @@ export default function VesselDetail({ vesselId }: { vesselId: string }) {
             </AuthenticatedLayout>
         );
     }
+
+    // Determine the planned path for the map by filtering out waypoints we have already passed
+    let remainingGeometry = [];
+    if (liveData.route_geometry && liveData.route_geometry.length > 0) {
+        let closestIdx = 0;
+        let minD = 999999;
+        for (let i = 0; i < liveData.route_geometry.length; i++) {
+            const wp = liveData.route_geometry[i];
+            const dist = Math.sqrt(Math.pow(wp[0] - simPosition[0], 2) + Math.pow(wp[1] - simPosition[1], 2));
+            if (dist < minD) {
+                minD = dist;
+                closestIdx = i;
+            }
+        }
+        
+        remainingGeometry = [liveData.route_geometry[liveData.route_geometry.length - 1]];
+        for (let i = closestIdx + 1; i < liveData.route_geometry.length; i++) {
+            const wp = liveData.route_geometry[i];
+            const dist = Math.sqrt(Math.pow(wp[0] - simPosition[0], 2) + Math.pow(wp[1] - simPosition[1], 2));
+            if (dist > 0.01) {
+                remainingGeometry = liveData.route_geometry.slice(i);
+                break;
+            }
+        }
+    }
+
+    const plannedPath = remainingGeometry.length > 0
+        ? [simPosition, ...remainingGeometry] 
+        : (liveData.destination_coords ? [simPosition, liveData.destination_coords] : null);
 
     return (
         <AuthenticatedLayout>
@@ -170,9 +232,9 @@ export default function VesselDetail({ vesselId }: { vesselId: string }) {
                                     />
                                     
                                     {/* Planned Route (Dashed) */}
-                                    {liveData.destination_coords && (
+                                    {plannedPath && (
                                         <Polyline 
-                                            positions={[simPosition, liveData.destination_coords]} 
+                                            positions={plannedPath} 
                                             pathOptions={{ color: '#0d6efd', weight: 3, dashArray: '8, 8', opacity: 0.6 }} 
                                         />
                                     )}
@@ -192,10 +254,21 @@ export default function VesselDetail({ vesselId }: { vesselId: string }) {
                                         />
                                     )}
 
-                                    {/* Live Moving Vessel Marker */}
+                                    {/* Live Moving Vessel Marker with Rotation */}
                                     <Marker 
                                         position={simPosition}
-                                        icon={vesselIcon}
+                                        icon={new L.DivIcon({
+                                            html: `<div style="transform: rotate(${liveData.heading}deg); transition: transform 1s linear; width: 32px; height: 32px; filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.3));">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32" fill="#2c3e50">
+                                                        <path d="M20 21c-1.39 0-2.78-.47-4-1.32-2.44 1.71-5.56 1.71-8 0C6.78 20.53 5.39 21 4 21H2v2h2c1.38 0 2.74-.35 4-.99 2.52 1.29 5.48 1.29 8 0 1.26.65 2.62.99 4 .99h2v-2h-2zM3.95 19H4c1.6 0 3.02-.88 4-2 .98 1.12 2.4 2 4 2s3.02-.88 4-2c.98 1.12 2.4 2 4 2h.05l1.89-6.68c.08-.26.06-.54-.06-.78s-.34-.42-.6-.5L20 11v-1c0-1.1-.9-2-2-2h-1V5c0-1.1-.9-2-2-2H9c-1.1 0-2 .9-2 2v3H6c-1.1 0-2 .9-2 2v1l-1.28.16c-.26.08-.48.26-.6.5s-.14.52-.06.78L3.95 19zM11 5h2v3h-2V5zM6 10h12v1H6v-1zm-1.34 2.89H19.34l-1.13 4H5.79l-1.13-4z"/>
+                                                    </svg>
+                                                    <div style="position: absolute; top: -5px; right: -5px; width: 10px; height: 10px; background-color: #10b981; border-radius: 50%; border: 2px solid white; animation: pulse 1.5s infinite;"></div>
+                                                   </div>`,
+                                            className: 'custom-vessel-icon',
+                                            iconSize: [32, 32],
+                                            iconAnchor: [16, 16],
+                                            popupAnchor: [0, -16]
+                                        })}
                                     >
                                         <Popup>
                                             <div className="text-center">
@@ -205,6 +278,9 @@ export default function VesselDetail({ vesselId }: { vesselId: string }) {
                                             </div>
                                         </Popup>
                                     </Marker>
+
+                                    {/* Auto-Centering Component */}
+                                    <MapUpdater center={simPosition} />
                                 </MapContainer>
                             </div>
                         </div>
@@ -213,4 +289,17 @@ export default function VesselDetail({ vesselId }: { vesselId: string }) {
             </div>
         </AuthenticatedLayout>
     );
+}
+
+// Child component to handle map auto-panning
+import { useMap } from 'react-leaflet';
+function MapUpdater({ center }: { center: [number, number] }) {
+    const map = useMap();
+    useEffect(() => {
+        // Only pan if it moves off-screen or significant distance to avoid jerky UI when dragging
+        if (map && center) {
+            map.panTo(center, { animate: true, duration: 1 });
+        }
+    }, [center, map]);
+    return null;
 }
