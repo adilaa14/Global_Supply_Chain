@@ -1,0 +1,1 @@
+<?php namespace App\Models; use Illuminate\Database\Eloquent\Model; use Illuminate\Database\Eloquent\Concerns\HasUuids; class CommodityDemand extends Model { use HasUuids; protected $guarded = []; protected $casts = ['top_buyers' => 'array', 'emerging_markets' => 'array']; public function commodity() { return $this->belongsTo(Commodity::class); } }

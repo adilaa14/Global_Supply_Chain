@@ -17,18 +17,21 @@ class VesselSeeder extends Seeder
         
         // Define realistic global ports
         $portData = [
-            ['name' => 'Port of Singapore', 'code' => 'SGSIN', 'country' => 'Singapore', 'lat' => 1.264, 'lng' => 103.840],
-            ['name' => 'Port of Rotterdam', 'code' => 'NLRTM', 'country' => 'Netherlands', 'lat' => 51.8850, 'lng' => 4.2867],
-            ['name' => 'Port of Los Angeles', 'code' => 'USLAX', 'country' => 'United States', 'lat' => 33.7288, 'lng' => -118.2620],
-            ['name' => 'Port of Shanghai', 'code' => 'CNSHA', 'country' => 'China', 'lat' => 31.2222, 'lng' => 121.4581],
-            ['name' => 'Port of Dubai', 'code' => 'AEJEA', 'country' => 'UAE', 'lat' => 25.0112, 'lng' => 55.0556],
-            ['name' => 'Port of Cape Town', 'code' => 'ZACPT', 'country' => 'South Africa', 'lat' => -33.900, 'lng' => 18.433],
-            ['name' => 'Port of Sydney', 'code' => 'AUSYD', 'country' => 'Australia', 'lat' => -33.8688, 'lng' => 151.2093],
+            ['name' => 'Port of Singapore', 'code' => 'SGSIN', 'country' => 'Singapore', 'iso' => 'SG', 'lat' => 1.264, 'lng' => 103.840],
+            ['name' => 'Port of Rotterdam', 'code' => 'NLRTM', 'country' => 'Netherlands', 'iso' => 'NL', 'lat' => 51.8850, 'lng' => 4.2867],
+            ['name' => 'Port of Los Angeles', 'code' => 'USLAX', 'country' => 'United States', 'iso' => 'US', 'lat' => 33.7288, 'lng' => -118.2620],
+            ['name' => 'Port of Shanghai', 'code' => 'CNSHA', 'country' => 'China', 'iso' => 'CN', 'lat' => 31.2222, 'lng' => 121.4581],
+            ['name' => 'Port of Dubai', 'code' => 'AEJEA', 'country' => 'United Arab Emirates', 'iso' => 'AE', 'lat' => 25.0112, 'lng' => 55.0556],
+            ['name' => 'Port of Cape Town', 'code' => 'ZACPT', 'country' => 'South Africa', 'iso' => 'ZA', 'lat' => -33.900, 'lng' => 18.433],
+            ['name' => 'Port of Sydney', 'code' => 'AUSYD', 'country' => 'Australia', 'iso' => 'AU', 'lat' => -33.8688, 'lng' => 151.2093],
         ];
 
         $ports = [];
         foreach ($portData as $pd) {
-            $country = \App\Models\Country::firstOrCreate(['iso_code' => strtoupper(substr($pd['country'], 0, 3))], ['country_name' => $pd['country']]);
+            $country = \App\Models\Country::where('iso_code', $pd['iso'])->first();
+            if (!$country) {
+                $country = \App\Models\Country::create(['iso_code' => $pd['iso'], 'country_name' => $pd['country']]);
+            }
             $ports[] = \App\Models\Port::updateOrCreate(
                 ['port_code' => $pd['code']],
                 ['country_id' => $country->id, 'port_name' => $pd['name'], 'latitude' => $pd['lat'], 'longitude' => $pd['lng']]

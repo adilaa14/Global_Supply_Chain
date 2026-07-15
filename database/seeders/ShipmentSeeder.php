@@ -18,7 +18,7 @@ class ShipmentSeeder extends Seeder
         $companies = Company::all();
         
         $country = Country::firstOrCreate(
-            ['iso_code' => 'USA'],
+            ['iso_code' => 'US'],
             ['country_name' => 'United States']
         );
         

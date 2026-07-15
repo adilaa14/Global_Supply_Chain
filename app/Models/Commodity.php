@@ -1,12 +1,1 @@
-<?php
-
-namespace App\Models;
-
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use Illuminate\Database\Eloquent\Model;
-
-class Commodity extends Model
-{
-    use HasUuids;
-    protected $guarded = [];
-}
+<?php namespace App\Models; use Illuminate\Database\Eloquent\Model; use Illuminate\Database\Eloquent\Concerns\HasUuids; class Commodity extends Model { use HasUuids; protected $guarded = []; public function category() { return $this->belongsTo(CommodityCategory::class); } public function prices() { return $this->hasMany(CommodityPrice::class); } public function histories() { return $this->hasMany(CommodityPriceHistory::class); } public function countryPrices() { return $this->hasMany(CommodityCountryPrice::class); } public function forecasts() { return $this->hasMany(CommodityForecast::class); } public function demands() { return $this->hasMany(CommodityDemand::class); } public function supplies() { return $this->hasMany(CommoditySupply::class); } public function market() { return $this->hasOne(CommodityMarket::class); } public function ranking() { return $this->hasOne(CommodityRanking::class); } }

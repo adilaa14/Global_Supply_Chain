@@ -19,7 +19,7 @@ class CountryIntelligenceSeeder extends Seeder
     {
         $faker = Faker::create();
         
-        if (Country::count() === 0) {
+        if (Country::count() <= 5) {
             $baseCountries = [
                 ['AF', 'Afghanistan', 'Asia', 'Kabul', 'AFN', 'Afghani', 38928000, '🇦🇫'],
                 ['AL', 'Albania', 'Europe', 'Tirana', 'ALL', 'Lek', 2877800, '🇦🇱'],
@@ -219,20 +219,22 @@ class CountryIntelligenceSeeder extends Seeder
             ];
 
             foreach ($baseCountries as $c) {
-                Country::create([
-                    'iso_code' => $c[0],
-                    'country_name' => $c[1],
-                    'region' => $c[2],
-                    'capital' => $c[3],
-                    'currency_code' => $c[4],
-                    'currency_name' => $c[5],
-                    'population' => $c[6],
-                    'flag' => $c[7],
-                    'timezone' => 'UTC',
-                    'latitude' => 0,
-                    'longitude' => 0,
-                    'language' => 'Native'
-                ]);
+                Country::updateOrCreate(
+                    ['iso_code' => $c[0]],
+                    [
+                        'country_name' => $c[1],
+                        'region' => $c[2],
+                        'capital' => $c[3],
+                        'currency_code' => $c[4],
+                        'currency_name' => $c[5],
+                        'population' => $c[6],
+                        'flag' => $c[7],
+                        'timezone' => 'UTC',
+                        'latitude' => 0,
+                        'longitude' => 0,
+                        'language' => 'Native'
+                    ]
+                );
             }
         }
 

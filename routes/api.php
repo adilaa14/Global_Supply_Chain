@@ -64,4 +64,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/opportunity', [\App\Http\Controllers\Api\CountryController::class, 'opportunity']);
         Route::get('/{id}', [\App\Http\Controllers\Api\CountryController::class, 'show']);
     });
+
+    // Commodity Intelligence API
+    Route::prefix('commodities')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\CommodityController::class, 'index']);
+        Route::get('/categories', [\App\Http\Controllers\Api\CommodityController::class, 'categories']);
+        Route::get('/list', [\App\Http\Controllers\Api\CommodityController::class, 'listAll']);
+        Route::get('/comparison', [\App\Http\Controllers\Api\CommodityController::class, 'comparison']);
+        Route::get('/{id}/history', [\App\Http\Controllers\Api\CommodityController::class, 'history']);
+        Route::get('/{id}', [\App\Http\Controllers\Api\CommodityController::class, 'show']);
+    });
 });

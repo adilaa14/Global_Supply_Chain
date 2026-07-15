@@ -139,8 +139,12 @@ export default function CountryIndex() {
                                         <tr key={country.id}>
                                             <td>
                                                 <div className="d-flex align-items-center gap-3">
-                                                    <div className="d-flex align-items-center justify-content-center bg-light rounded" style={{ width: '40px', height: '30px', fontSize: '20px' }}>
-                                                        {country.flag}
+                                                    <div className="d-flex align-items-center justify-content-center bg-light rounded overflow-hidden shadow-sm" style={{ width: '40px', height: '30px' }}>
+                                                        {country.iso_code ? (
+                                                            <img src={`https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.0.0/flags/4x3/${country.iso_code.toLowerCase()}.svg`} alt={country.iso_code} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                        ) : (
+                                                            <span style={{ fontSize: '20px' }}>{country.flag || '🏳️'}</span>
+                                                        )}
                                                     </div>
                                                     <div>
                                                         <h6 className="mb-0 fw-bold">{country.country_name}</h6>

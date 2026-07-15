@@ -111,9 +111,10 @@ class DatabaseSeeder extends Seeder
         // 7. Run additional seeders
         $this->call([
             DashboardCoreSeeder::class,
+            CountryIntelligenceSeeder::class, // Run this first so countries exist
             ShipmentSeeder::class,
             VesselSeeder::class,
-            CountryIntelligenceSeeder::class,
+            CommodityIntelligenceSeeder::class,
         ]);
     }
 }
