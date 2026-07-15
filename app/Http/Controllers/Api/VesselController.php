@@ -26,6 +26,27 @@ class VesselController extends Controller
         ]);
     }
 
+    public function weatherOverlay(Request $request, \App\Services\RiskScoringEngine $riskEngine)
+    {
+        $countries = \App\Models\Country::all();
+        $weatherData = [];
+
+        foreach($countries as $country) {
+            $weatherData[] = [
+                'id' => $country->id,
+                'country' => $country->country_name,
+                'iso' => $country->iso_code,
+                'lat' => $country->latitude,
+                'lng' => $country->longitude,
+            ];
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $weatherData
+        ]);
+    }
+
     public function liveData(string $id)
     {
         $liveData = $this->trackingService->getLiveVesselData($id);

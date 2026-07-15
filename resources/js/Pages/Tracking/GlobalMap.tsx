@@ -2,7 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
 import { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, CircleMarker, useMap, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -24,9 +24,71 @@ const vesselIcon = new L.Icon({
     popupAnchor: [0, -16]
 });
 
+// Helper to calculate distance between two coordinates
+function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number) {
+    const R = 6371; // Radius of the earth in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+    return R * c;
+}
+
+function MapUpdater({ showWeather, weatherData, setShowWeather, setActiveWeather }: { showWeather: string, weatherData: any[], setShowWeather: (iso: string) => void, setActiveWeather: (w: any) => void }) {
+    const map = useMap();
+    
+    useMapEvents({
+        async click(e) {
+            if (weatherData.length === 0) return;
+            // Find nearest country
+            let nearestCountry = weatherData[0];
+            let minDistance = Infinity;
+            
+            weatherData.forEach(country => {
+                const dist = getDistanceFromLatLonInKm(e.latlng.lat, e.latlng.lng, country.lat, country.lng);
+                if (dist < minDistance) {
+                    minDistance = dist;
+                    nearestCountry = country;
+                }
+            });
+            
+            if (nearestCountry) {
+                setShowWeather(nearestCountry.iso);
+                setActiveWeather(null); // Show loading state or clear previous
+                try {
+                    const res = await axios.get(`/api/countries/${nearestCountry.id}`);
+                    if (res.data && res.data.macro_indicators) {
+                        setActiveWeather(res.data.macro_indicators.weather);
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch weather data", error);
+                    setActiveWeather({ condition: 'Unknown', temperature: 'N/A', rainfall: 'N/A', wind_speed: 'N/A', storm_risk: 'N/A' });
+                }
+            }
+        }
+    });
+
+    useEffect(() => {
+        if (showWeather && weatherData.length > 0) {
+            const country = weatherData.find(d => d.iso === showWeather);
+            if (country) {
+                map.flyTo([country.lat, country.lng], 5, { duration: 1.5 });
+            }
+        }
+    }, [showWeather, weatherData, map]);
+
+    return null;
+}
+
 export default function GlobalMap() {
     const [mapData, setMapData] = useState<any>({ vessels: [] });
+    const [weatherData, setWeatherData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [showWeather, setShowWeather] = useState<string>('');
+    const [activeWeather, setActiveWeather] = useState<any>(null);
 
     useEffect(() => {
         const fetchMapData = async () => {
@@ -42,11 +104,30 @@ export default function GlobalMap() {
             }
         };
 
+        const fetchWeatherData = async () => {
+            try {
+                const res = await axios.get('/api/tracking/weather-overlay');
+                if (res.data.status === 'success') {
+                    setWeatherData(res.data.data);
+                }
+            } catch (error) {
+                console.error('Failed to fetch weather data', error);
+            }
+        };
+
         fetchMapData();
+        fetchWeatherData();
 
         // Optional: Reverb listening for live updates
         // window.Echo.channel('tracking').listen('VesselMoved', (e) => { ... });
     }, []);
+
+    const getWeatherColor = (condition: string) => {
+        if (condition === 'Typhoon' || condition === 'Storm') return '#dc3545'; // Danger (Red)
+        if (condition === 'Rain') return '#0dcaf0'; // Info (Blue)
+        if (condition === 'Cloudy') return '#ffc107'; // Warning (Yellow)
+        return '#198754'; // Success (Green)
+    };
 
     return (
         <AuthenticatedLayout>
@@ -76,13 +157,14 @@ export default function GlobalMap() {
                             </div>
                         </div>
                     )}
-                    
                     <MapContainer center={[20, 0]} zoom={3} style={{ flexGrow: 1, width: '100%', zIndex: 1, borderRadius: '20px' }}>
                         <TileLayer
                             url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
                             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                         />
                         
+                        <MapUpdater showWeather={showWeather} weatherData={weatherData} setShowWeather={setShowWeather} setActiveWeather={setActiveWeather} />
+
                         {mapData.vessels && mapData.vessels.map((vessel: any) => (
                             <Marker 
                                 key={vessel.id} 
@@ -104,18 +186,78 @@ export default function GlobalMap() {
                                 </Popup>
                             </Marker>
                         ))}
+
+                        {weatherData.filter((d: any) => d.iso === showWeather).map((data: any) => (
+                            <CircleMarker
+                                key={`weather-${data.iso}`}
+                                center={[data.lat, data.lng]}
+                                radius={20}
+                                ref={(node: any) => {
+                                    if (node) {
+                                        setTimeout(() => node.openPopup(), 300);
+                                    }
+                                }}
+                                pathOptions={{ 
+                                    color: getWeatherColor(activeWeather?.condition || 'Unknown'), 
+                                    fillColor: getWeatherColor(activeWeather?.condition || 'Unknown'),
+                                    fillOpacity: 0.4
+                                }}
+                            >
+                                <Popup>
+                                    <div style={{ minWidth: '180px' }}>
+                                        <h6 className="fw-bold border-bottom pb-2 mb-2 d-flex align-items-center gap-2">
+                                            <img src={`https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/${data.iso.toLowerCase()}.svg`} width="20" alt={data.iso} />
+                                            {data.country}
+                                        </h6>
+                                        {activeWeather ? (
+                                            <>
+                                                <div className="d-flex align-items-center gap-2 mb-2">
+                                                    <span className="material-symbols-outlined" style={{ color: getWeatherColor(activeWeather.condition) }}>
+                                                        {activeWeather.condition === 'Clear' ? 'sunny' : 
+                                                         activeWeather.condition === 'Rain' ? 'rainy' : 'thunderstorm'}
+                                                    </span>
+                                                    <span className="fw-bold">{activeWeather.condition}</span>
+                                                </div>
+                                                <div className="small mb-1 d-flex justify-content-between">
+                                                    <span className="text-muted">Temp:</span>
+                                                    <strong>{activeWeather.temperature}</strong>
+                                                </div>
+                                                <div className="small mb-1 d-flex justify-content-between">
+                                                    <span className="text-muted">Rainfall:</span>
+                                                    <strong>{activeWeather.rainfall}</strong>
+                                                </div>
+                                                <div className="small mb-1 d-flex justify-content-between">
+                                                    <span className="text-muted">Wind Speed:</span>
+                                                    <strong>{activeWeather.wind_speed}</strong>
+                                                </div>
+                                                <div className="small mt-2 p-1 text-center rounded text-white" style={{ background: parseInt(activeWeather.storm_risk) > 50 ? '#dc3545' : '#198754' }}>
+                                                    Storm Risk: {activeWeather.storm_risk}
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <div className="text-center py-3">
+                                                <div className="spinner-border spinner-border-sm text-primary mb-2" role="status">
+                                                    <span className="visually-hidden">Loading...</span>
+                                                </div>
+                                                <div className="small text-muted">Fetching live weather...</div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </Popup>
+                            </CircleMarker>
+                        ))}
                     </MapContainer>
                     
                     {/* Floating Overlay for Map Stats */}
-                    <div className="position-absolute bottom-0 start-0 m-4 p-3 bg-white shadow" style={{ zIndex: 1000, width: '250px', borderRadius: '15px' }}>
-                        <h6 className="fw-bold text-secondary mb-2">Map Summary</h6>
-                        <div className="d-flex justify-content-between mb-1 small">
-                            <span className="text-muted">Active Vessels</span>
-                            <span className="fw-bold">{mapData.vessels?.length || 0}</span>
+                    <div className="position-absolute bottom-0 start-0 m-4 p-3 bg-white shadow" style={{ zIndex: 1000, width: '280px', borderRadius: '15px' }}>
+                        <h6 className="fw-bold text-secondary mb-3 border-bottom pb-2">Map Controls</h6>
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                            <span className="text-muted small">Active Vessels</span>
+                            <span className="badge bg-primary rounded-pill px-3">{mapData.vessels?.length || 0}</span>
                         </div>
-                        <div className="d-flex justify-content-between mb-1 small">
-                            <span className="text-muted">Weather Overlay</span>
-                            <span className="badge bg-light text-muted border">Disabled</span>
+                        <div className="mb-2 text-center bg-light p-2 rounded border border-light">
+                            <span className="material-symbols-outlined text-muted mb-1" style={{ fontSize: '24px' }}>touch_app</span>
+                            <p className="text-muted small mb-0 fw-medium">Click anywhere on the map to view live weather for that region.</p>
                         </div>
                     </div>
                 </div>

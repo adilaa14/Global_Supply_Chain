@@ -297,7 +297,7 @@ export default function CommodityShow({ commodityId }: { commodityId: string }) 
 
                 <div className="row mt-4 fade-up" style={{ animationDelay: '0.4s' }}>
                     <div className="col-12">
-                        <div className="panel-card">
+                        <div className="panel-card" style={{ transform: 'none', transition: 'none' }}>
                             <div className="d-flex justify-content-between align-items-center mb-4">
                                 <h5 className="fw-bold mb-0">Global Price Distribution</h5>
                                 <span className="badge bg-light text-dark">Data across {commodity.country_prices?.length || 0} countries</span>

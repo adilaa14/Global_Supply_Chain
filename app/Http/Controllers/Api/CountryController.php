@@ -56,13 +56,105 @@ class CountryController extends Controller
         return response()->json($query->paginate(20));
     }
 
-    public function show($id)
+    public function show($id, \App\Services\RiskScoringEngine $riskEngine)
     {
         $country = Country::with([
             'economy', 'risk', 'opportunity', 
             'tradeStatistics', 'tradeAgreements', 
             'regulations', 'ranking', 'ports'
         ])->findOrFail($id);
+
+        $isoCode = $country->iso_code;
+
+        $cacheKey = "country_live_data_{$isoCode}";
+        $liveData = \Illuminate\Support\Facades\Cache::remember($cacheKey, 3600, function() use ($isoCode, $country) {
+            $data = [
+                'gdp' => 'N/A',
+                'inflation' => 'N/A',
+                'population' => 'N/A',
+                'exports' => 'N/A',
+                'imports' => 'N/A',
+                'currency' => $country->currency_code ?? 'USD',
+                'currency_name' => $country->currency_name ?? 'US Dollar',
+                'region' => $country->region ?? 'N/A',
+                'languages' => $country->language ?? 'N/A',
+                'exchange_rate' => 'N/A'
+            ];
+
+            try {
+                $responses = \Illuminate\Support\Facades\Http::pool(fn (\Illuminate\Http\Client\Pool $pool) => [
+                    $pool->as('er')->withOptions(['verify' => false])->timeout(3)->get("https://open.er-api.com/v6/latest/USD"),
+                    $pool->as('wb_gdp')->withOptions(['verify' => false])->timeout(3)->get("https://api.worldbank.org/v2/country/{$isoCode}/indicator/NY.GDP.MKTP.CD?format=json&per_page=5"),
+                    $pool->as('wb_inf')->withOptions(['verify' => false])->timeout(3)->get("https://api.worldbank.org/v2/country/{$isoCode}/indicator/FP.CPI.TOTL.ZG?format=json&per_page=5"),
+                    $pool->as('wb_pop')->withOptions(['verify' => false])->timeout(3)->get("https://api.worldbank.org/v2/country/{$isoCode}/indicator/SP.POP.TOTL?format=json&per_page=5"),
+                    $pool->as('wb_exp')->withOptions(['verify' => false])->timeout(3)->get("https://api.worldbank.org/v2/country/{$isoCode}/indicator/NE.EXP.GNFS.CD?format=json&per_page=5"),
+                    $pool->as('wb_imp')->withOptions(['verify' => false])->timeout(3)->get("https://api.worldbank.org/v2/country/{$isoCode}/indicator/NE.IMP.GNFS.CD?format=json&per_page=5"),
+                ]);
+
+                // 1. ExchangeRate
+                if (isset($responses['er']) && $responses['er'] instanceof \Illuminate\Http\Client\Response && $responses['er']->successful()) {
+                    $rates = $responses['er']->json()['rates'] ?? [];
+                    if (isset($rates[$data['currency']])) {
+                        $data['exchange_rate'] = '1 USD = ' . number_format($rates[$data['currency']], 2) . ' ' . $data['currency'];
+                    } else {
+                        $data['exchange_rate'] = '1 USD = 1 USD';
+                    }
+                }
+
+                // 2. World Bank
+                $parseWb = function($response) {
+                    if (isset($response) && $response instanceof \Illuminate\Http\Client\Response && $response->successful()) {
+                        $json = $response->json();
+                        if (isset($json[1]) && is_array($json[1])) {
+                            foreach ($json[1] as $item) {
+                                if (isset($item['value']) && !is_null($item['value'])) {
+                                    return $item['value'];
+                                }
+                            }
+                        }
+                    }
+                    return null;
+                };
+
+                $gdp = $parseWb($responses['wb_gdp'] ?? null);
+                if ($gdp) $data['gdp'] = '$' . number_format($gdp / 1000000000, 2) . ' Billion';
+
+                $inf = $parseWb($responses['wb_inf'] ?? null);
+                if ($inf) $data['inflation'] = number_format($inf, 2) . '%';
+
+                $pop = $parseWb($responses['wb_pop'] ?? null);
+                if ($pop) $data['population'] = number_format($pop) . ' people';
+
+                $exp = $parseWb($responses['wb_exp'] ?? null);
+                if ($exp) $data['exports'] = '$' . number_format($exp / 1000000000, 2) . ' Billion';
+
+                $imp = $parseWb($responses['wb_imp'] ?? null);
+                if ($imp) $data['imports'] = '$' . number_format($imp / 1000000000, 2) . ' Billion';
+
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('API Integration Failed: ' . $e->getMessage());
+            }
+
+            return $data;
+        });
+
+        // Inject Macroeconomic and Weather Data via RiskScoringEngine
+        $macroData = $riskEngine->calculateCountryRisk($country);
+        
+        $country->setAttribute('macro_indicators', [
+            'gdp' => $liveData['gdp'],
+            'population' => $liveData['population'],
+            'currency' => $liveData['currency'] . ' (' . $liveData['currency_name'] . ')',
+            'region' => $liveData['region'],
+            'languages' => $liveData['languages'],
+            'exports' => $liveData['exports'],
+            'imports' => $liveData['imports'],
+            'exchange_rate' => $liveData['exchange_rate'],
+            'inflation' => ['rate' => $liveData['inflation']],
+            'weather' => $macroData['metrics']['weather'],
+            'risk_level' => $macroData['risk_level'],
+            'total_score' => $macroData['total_score'],
+        ]);
 
         return response()->json($country);
     }

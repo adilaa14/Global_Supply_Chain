@@ -11,7 +11,19 @@ export default function CommodityCompare() {
     
     // For dropdown search
     const [search, setSearch] = useState('');
+    const [showDropdown, setShowDropdown] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+
+    // Close dropdown on outside click
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setShowDropdown(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     useEffect(() => {
         axios.get('/api/commodities/list').then(res => {
@@ -92,12 +104,11 @@ export default function CommodityCompare() {
                             <button 
                                 className="btn btn-primary rounded-pill px-4 shadow-sm" 
                                 type="button" 
-                                data-bs-toggle="dropdown"
-                                data-bs-auto-close="outside"
+                                onClick={() => setShowDropdown(!showDropdown)}
                             >
                                 Select Commodities
                             </button>
-                            <div className="dropdown-menu dropdown-menu-end p-3 shadow-lg border-0 bg-white rounded-3" style={{ width: '300px' }}>
+                            <div className={`dropdown-menu dropdown-menu-end p-3 shadow-lg border-0 bg-white rounded-3 ${showDropdown ? 'show' : ''}`} style={{ width: '300px' }}>
                                 <input 
                                     type="text" 
                                     className="form-control mb-3" 
@@ -137,8 +148,8 @@ export default function CommodityCompare() {
                         <p className="text-muted small">Please select at least one commodity from the dropdown above.</p>
                     </div>
                 ) : (
-                    <div className="table-responsive fade-up" style={{ animationDelay: '0.2s', zIndex: 1, position: 'relative' }}>
-                        <table className="table table-bordered bg-white custom-table" style={{ minWidth: '800px' }}>
+                    <div className="table-responsive bg-white rounded-4 shadow-sm fade-up overflow-hidden" style={{ animationDelay: '0.2s', zIndex: 1, position: 'relative', border: '1px solid rgba(0,0,0,0.05)' }}>
+                        <table className="table table-hover align-middle mb-0" style={{ minWidth: '800px' }}>
                             <tbody>
                                 {/* Header Row */}
                                 <tr className="bg-light">

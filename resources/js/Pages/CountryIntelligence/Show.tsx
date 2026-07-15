@@ -105,27 +105,58 @@ export default function CountryShow({ countryId }: { countryId: string }) {
                     {activeTab === 'overview' && (
                         <div className="row g-4">
                             <div className="col-md-6">
-                                <h6 className="fw-bold mb-3 text-secondary border-bottom pb-2">General Information</h6>
+                                <h6 className="fw-bold mb-3 text-secondary border-bottom pb-2">Global Country Dashboard</h6>
                                 <table className="table table-borderless table-sm">
                                     <tbody>
-                                        <tr><td className="text-muted w-50">Capital</td><td className="fw-medium">{country.capital}</td></tr>
-                                        <tr><td className="text-muted">Population</td><td className="fw-medium">{parseInt(country.population).toLocaleString()}</td></tr>
-                                        <tr><td className="text-muted">Currency</td><td className="fw-medium">{country.currency_name} ({country.currency_code})</td></tr>
-                                        <tr><td className="text-muted">Timezone</td><td className="fw-medium">{country.timezone}</td></tr>
-                                        <tr><td className="text-muted">Language</td><td className="fw-medium">{country.language}</td></tr>
+                                        <tr><td className="text-muted w-50">GDP</td><td className="fw-medium text-primary">{country.macro_indicators?.gdp}</td></tr>
+                                        <tr><td className="text-muted">Inflation</td><td className="fw-medium text-danger">{country.macro_indicators?.inflation?.rate}</td></tr>
+                                        <tr><td className="text-muted">Population</td><td className="fw-medium">{country.macro_indicators?.population}</td></tr>
+                                        <tr><td className="text-muted">Region</td><td className="fw-medium">{country.macro_indicators?.region}</td></tr>
+                                        <tr><td className="text-muted">Languages</td><td className="fw-medium">{country.macro_indicators?.languages}</td></tr>
+                                        <tr><td className="text-muted">Exports</td><td className="fw-medium text-success">{country.macro_indicators?.exports}</td></tr>
+                                        <tr><td className="text-muted">Imports</td><td className="fw-medium text-warning">{country.macro_indicators?.imports}</td></tr>
+                                        <tr><td className="text-muted">Currency</td><td className="fw-medium">{country.macro_indicators?.currency}</td></tr>
+                                        <tr><td className="text-muted">Exchange Rate</td><td className="fw-medium">{country.macro_indicators?.exchange_rate}</td></tr>
                                     </tbody>
                                 </table>
                             </div>
                             <div className="col-md-6">
-                                <h6 className="fw-bold mb-3 text-secondary border-bottom pb-2">Macro Indicators</h6>
-                                <table className="table table-borderless table-sm">
-                                    <tbody>
-                                        <tr><td className="text-muted w-50">GDP Growth</td><td className="fw-medium text-success">{country.economy?.gdp_growth}%</td></tr>
-                                        <tr><td className="text-muted">Inflation Rate</td><td className="fw-medium text-danger">{country.economy?.inflation_rate}%</td></tr>
-                                        <tr><td className="text-muted">Interest Rate</td><td className="fw-medium">{country.economy?.interest_rate}%</td></tr>
-                                        <tr><td className="text-muted">Exchange Rate (vs USD)</td><td className="fw-medium">{country.economy?.exchange_rate}</td></tr>
-                                    </tbody>
-                                </table>
+                                <h6 className="fw-bold mb-3 text-secondary border-bottom pb-2">Live Weather & Environment</h6>
+                                <div className="p-3 bg-light rounded-4">
+                                    <div className="d-flex align-items-center gap-4 mb-3">
+                                        <div className="text-center">
+                                            <span className="material-symbols-outlined text-info" style={{ fontSize: '48px' }}>
+                                                {country.macro_indicators?.weather?.condition === 'Clear' ? 'sunny' : 
+                                                 country.macro_indicators?.weather?.condition === 'Rain' ? 'rainy' : 
+                                                 (country.macro_indicators?.weather?.condition === 'Storm' || country.macro_indicators?.weather?.condition === 'Typhoon') ? 'thunderstorm' : 'cloud'}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <h3 className="fw-bold mb-0">{country.macro_indicators?.weather?.temperature}</h3>
+                                            <p className="text-muted mb-0">{country.macro_indicators?.weather?.condition}</p>
+                                        </div>
+                                    </div>
+                                    <div className="row g-2">
+                                        <div className="col-6">
+                                            <div className="border rounded-3 p-2 bg-white text-center">
+                                                <span className="text-muted small d-block mb-1">Curah Hujan</span>
+                                                <span className="fw-bold text-primary">{country.macro_indicators?.weather?.rainfall}</span>
+                                            </div>
+                                        </div>
+                                        <div className="col-6">
+                                            <div className="border rounded-3 p-2 bg-white text-center">
+                                                <span className="text-muted small d-block mb-1">Kec. Angin</span>
+                                                <span className="fw-bold text-info">{country.macro_indicators?.weather?.wind_speed}</span>
+                                            </div>
+                                        </div>
+                                        <div className="col-12 mt-2">
+                                            <div className="border rounded-3 p-2 bg-white d-flex justify-content-between align-items-center">
+                                                <span className="text-muted small">Risiko Badai</span>
+                                                <span className={`badge ${parseInt(country.macro_indicators?.weather?.storm_risk) > 50 ? 'bg-danger' : 'bg-success'}`}>{country.macro_indicators?.weather?.storm_risk}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     )}
@@ -193,11 +224,141 @@ export default function CountryShow({ countryId }: { countryId: string }) {
                         </div>
                     )}
 
-                    {(activeTab !== 'overview' && activeTab !== 'risk' && activeTab !== 'opportunity') && (
-                        <div className="py-5 text-center text-muted">
-                            <span className="material-symbols-outlined mb-3" style={{ fontSize: '48px', opacity: 0.5 }}>construction</span>
-                            <h5>Module Under Development</h5>
-                            <p>This section is being synchronized with the global database.</p>
+                    {activeTab === 'economy' && country.economy && (
+                        <div className="row g-4 fade-up">
+                            <div className="col-12">
+                                <h6 className="fw-bold mb-3 text-secondary border-bottom pb-2">Macroeconomic Indicators</h6>
+                            </div>
+                            <div className="col-md-3">
+                                <div className="p-3 border rounded-3 bg-light">
+                                    <span className="text-muted small d-block mb-1">GDP Growth (Annual)</span>
+                                    <h4 className={`fw-bold mb-0 ${country.economy.gdp_growth > 0 ? 'text-success' : 'text-danger'}`}>
+                                        {country.economy.gdp_growth}%
+                                    </h4>
+                                </div>
+                            </div>
+                            <div className="col-md-3">
+                                <div className="p-3 border rounded-3 bg-light">
+                                    <span className="text-muted small d-block mb-1">Interest Rate</span>
+                                    <h4 className="fw-bold text-primary mb-0">{country.economy.interest_rate}%</h4>
+                                </div>
+                            </div>
+                            <div className="col-md-3">
+                                <div className="p-3 border rounded-3 bg-light">
+                                    <span className="text-muted small d-block mb-1">Unemployment Rate</span>
+                                    <h4 className="fw-bold text-warning mb-0">{country.economy.unemployment_rate}%</h4>
+                                </div>
+                            </div>
+                            <div className="col-md-3">
+                                <div className="p-3 border rounded-3 bg-light">
+                                    <span className="text-muted small d-block mb-1">Purchasing Power Parity</span>
+                                    <h4 className="fw-bold text-info mb-0">${Number(country.economy.purchasing_power).toLocaleString()}</h4>
+                                </div>
+                            </div>
+                            <div className="col-12 mt-4">
+                                <h6 className="fw-bold mb-3 text-secondary border-bottom pb-2">Consumer & Producer Indices</h6>
+                                <div className="d-flex gap-4">
+                                    <div className="border rounded-3 p-3 flex-fill text-center">
+                                        <h2 className="fw-bold mb-1">{country.economy.consumer_price_index}</h2>
+                                        <span className="text-muted">CPI (Consumer Price Index)</span>
+                                    </div>
+                                    <div className="border rounded-3 p-3 flex-fill text-center">
+                                        <h2 className="fw-bold mb-1">{country.economy.producer_price_index}</h2>
+                                        <span className="text-muted">PPI (Producer Price Index)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'trade' && (
+                        <div className="row g-4 fade-up">
+                            <div className="col-12">
+                                <h6 className="fw-bold mb-3 text-secondary border-bottom pb-2">Trade Statistics & Policies</h6>
+                            </div>
+                            
+                            <div className="col-md-4">
+                                <div className="p-3 border rounded-3 bg-success-subtle border-success-subtle h-100">
+                                    <h6 className="text-success fw-bold">Trade Status</h6>
+                                    <h3 className="fw-bold text-success mb-0">{country.trade_status || 'Active'}</h3>
+                                    <p className="small text-muted mt-2 mb-0">General orientation of national trade.</p>
+                                </div>
+                            </div>
+                            
+                            {country.trade_statistics && country.trade_statistics.length > 0 && (
+                                <>
+                                    <div className="col-md-4">
+                                        <div className="p-3 border rounded-3 bg-primary-subtle border-primary-subtle h-100">
+                                            <h6 className="text-primary fw-bold">Trade Balance</h6>
+                                            <h3 className="fw-bold text-primary mb-0">${Number(country.trade_statistics[0].trade_balance / 1000000).toFixed(2)}M</h3>
+                                            <p className="small text-muted mt-2 mb-0">Current annual trade balance.</p>
+                                        </div>
+                                    </div>
+                                    <div className="col-md-4">
+                                        <div className="p-3 border rounded-3 bg-info-subtle border-info-subtle h-100">
+                                            <h6 className="text-info fw-bold">Average Import Duty</h6>
+                                            <h3 className="fw-bold text-info mb-0">{country.trade_statistics[0].import_duty_avg}%</h3>
+                                            <p className="small text-muted mt-2 mb-0">Tariff barriers for inbound goods.</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="col-md-6 mt-4">
+                                        <h6 className="fw-bold mb-3 text-secondary">Top Exported Commodities</h6>
+                                        <div className="d-flex flex-wrap gap-2">
+                                            {JSON.parse(country.trade_statistics[0].top_exported_commodities || '[]').map((item: string, idx: number) => (
+                                                <span key={idx} className="badge bg-success-subtle text-success border border-success px-3 py-2">{item}</span>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="col-md-6 mt-4">
+                                        <h6 className="fw-bold mb-3 text-secondary">Top Imported Commodities</h6>
+                                        <div className="d-flex flex-wrap gap-2">
+                                            {JSON.parse(country.trade_statistics[0].top_imported_commodities || '[]').map((item: string, idx: number) => (
+                                                <span key={idx} className="badge bg-warning-subtle text-warning border border-warning px-3 py-2">{item}</span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    )}
+
+                    {activeTab === 'logistics' && (
+                        <div className="row g-4 fade-up">
+                            <div className="col-12">
+                                <h6 className="fw-bold mb-3 text-secondary border-bottom pb-2">Logistics & Infrastructure</h6>
+                            </div>
+                            {country.ports && country.ports.length > 0 ? (
+                                <div className="col-12">
+                                    <div className="table-responsive">
+                                        <table className="table table-hover align-middle border">
+                                            <thead className="table-light">
+                                                <tr>
+                                                    <th>Port Name</th>
+                                                    <th>Type</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {country.ports.map((port: any, idx: number) => (
+                                                    <tr key={idx}>
+                                                        <td className="fw-medium">{port.port_name}</td>
+                                                        <td><span className="badge bg-light text-dark border">{port.port_type || 'Seaport'}</span></td>
+                                                        <td><span className="badge bg-success-subtle text-success border border-success">Operational</span></td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="col-12 text-center py-5">
+                                    <span className="material-symbols-outlined text-muted mb-3" style={{ fontSize: '48px', opacity: 0.5 }}>directions_boat</span>
+                                    <h5 className="text-muted">No Major Ports Data</h5>
+                                    <p className="text-muted">Logistics infrastructure data is currently being mapped.</p>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>

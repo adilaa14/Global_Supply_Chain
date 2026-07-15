@@ -75,3 +75,17 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}', [\App\Http\Controllers\Api\CommodityController::class, 'show']);
     });
 });
+
+// Trade Intelligence Routes
+Route::prefix('trade')->group(function () {
+    Route::get('dashboard', [\App\Http\Controllers\Api\TradeIntelligenceController::class, 'dashboard']);
+    Route::get('opportunities', [\App\Http\Controllers\Api\TradeIntelligenceController::class, 'opportunities']);
+    Route::get('risk', [\App\Http\Controllers\Api\TradeIntelligenceController::class, 'risk']);
+    Route::get('forecast', [\App\Http\Controllers\Api\TradeIntelligenceController::class, 'forecast']);
+    Route::get('insights', [\App\Http\Controllers\Api\TradeIntelligenceController::class, 'insights']);
+    Route::get('alternative-destinations', [\App\Http\Controllers\Api\TradeIntelligenceController::class, 'alternativeDestinations']);
+    Route::get('simulation', [\App\Http\Controllers\Api\TradeIntelligenceController::class, 'getSimulations']);
+    Route::post('simulation', [\App\Http\Controllers\Api\TradeIntelligenceController::class, 'simulate']);
+});
+
+Route::get('/tracking/weather-overlay', [\App\Http\Controllers\Api\VesselController::class, 'weatherOverlay']);

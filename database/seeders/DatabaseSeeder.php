@@ -115,6 +115,7 @@ class DatabaseSeeder extends Seeder
             ShipmentSeeder::class,
             VesselSeeder::class,
             CommodityIntelligenceSeeder::class,
+            TradeIntelligenceSeeder::class,
         ]);
     }
 }
