@@ -10,7 +10,7 @@ class CountryController extends Controller
 {
     public function listAll()
     {
-        return response()->json(Country::select('id', 'country_name', 'flag')->orderBy('country_name')->get());
+        return response()->json(Country::select('id', 'country_name', 'flag', 'iso_code')->orderBy('country_name')->get());
     }
 
     public function index(Request $request)

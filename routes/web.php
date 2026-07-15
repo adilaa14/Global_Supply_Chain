@@ -45,6 +45,48 @@ Route::middleware('auth')->group(function () {
                 return [];
             });
         })->name('api.world-ports');
+        
+        Route::get('/api/worldbank/{iso}/{indicator}', function($iso, $indicator) {
+            $cacheKey = "wb_{$iso}_{$indicator}";
+            $cached = \Illuminate\Support\Facades\Cache::get($cacheKey);
+            if ($cached) return $cached;
+
+            try {
+                $response = \Illuminate\Support\Facades\Http::withOptions(['verify' => false])
+                    ->timeout(5)
+                    ->get("https://api.worldbank.org/v2/country/{$iso}/indicator/{$indicator}?format=json&per_page=6");
+                
+                if ($response->successful()) {
+                    $data = $response->json();
+                    \Illuminate\Support\Facades\Cache::put($cacheKey, $data, 3600);
+                    return $data;
+                }
+            } catch (\Exception $e) {
+                // Return empty if fails, but DO NOT cache it
+            }
+            return [];
+        })->name('api.worldbank');
+
+        Route::get('/api/exchange-rates/{base}/{symbols}/{startDate}/{endDate}', function($base, $symbols, $startDate, $endDate) {
+            $cacheKey = "er_{$base}_{$symbols}_{$startDate}_{$endDate}";
+            $cached = \Illuminate\Support\Facades\Cache::get($cacheKey);
+            if ($cached) return $cached;
+
+            try {
+                $response = \Illuminate\Support\Facades\Http::withOptions(['verify' => false])
+                    ->timeout(8)
+                    ->get("https://api.frankfurter.app/{$startDate}..{$endDate}?from={$base}&to={$symbols}");
+                
+                if ($response->successful()) {
+                    $data = $response->json();
+                    \Illuminate\Support\Facades\Cache::put($cacheKey, $data, 3600);
+                    return $data;
+                }
+            } catch (\Exception $e) {
+                // Return empty if fails, but DO NOT cache it
+            }
+            return [];
+        })->name('api.exchange-rates');
         Route::get('/vessels', [\App\Http\Controllers\VesselWebController::class, 'list'])->name('vessels');
         Route::get('/vessels/{id}', [\App\Http\Controllers\VesselWebController::class, 'show'])->name('vessel.show');
     });
@@ -58,6 +100,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/commodities', [\App\Http\Controllers\CommodityIntelligenceWebController::class, 'index'])->name('commodities.index');
         Route::get('/commodities/compare', [\App\Http\Controllers\CommodityIntelligenceWebController::class, 'compare'])->name('commodities.compare');
         Route::get('/commodities/{id}', [\App\Http\Controllers\CommodityIntelligenceWebController::class, 'show'])->name('commodities.show');
+    });
+
+    // Analytics Web Routes
+    Route::prefix('analytics')->name('analytics.')->group(function () {
+        Route::get('/visualization', function() { return \Inertia\Inertia::render('Analytics/Visualization'); })->name('visualization');
+        Route::get('/currency-impact', function() { return \Inertia\Inertia::render('Analytics/CurrencyImpact'); })->name('currency-impact');
     });
 });
 
