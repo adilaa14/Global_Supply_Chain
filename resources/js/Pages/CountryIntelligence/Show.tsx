@@ -157,6 +157,37 @@ export default function CountryShow({ countryId }: { countryId: string }) {
                                         </div>
                                     </div>
                                 </div>
+                                
+                                {country.local_sentiment && (
+                                    <div className="mt-4 p-3 bg-light rounded-4 border-start border-4" style={{ borderColor: country.local_sentiment.overall_status === 'High Risk' ? 'var(--danger)' : country.local_sentiment.overall_status === 'Favorable' ? 'var(--success)' : 'var(--secondary)' }}>
+                                        <h6 className="fw-bold mb-3 d-flex align-items-center gap-2">
+                                            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>newspaper</span>
+                                            Local News Sentiment
+                                            <span className={`badge bg-${country.local_sentiment.overall_status === 'High Risk' ? 'danger' : country.local_sentiment.overall_status === 'Favorable' ? 'success' : 'secondary'} ms-auto`}>
+                                                {country.local_sentiment.overall_status}
+                                            </span>
+                                        </h6>
+                                        
+                                        {country.local_sentiment.total_analyzed === 0 ? (
+                                            <div className="text-center text-muted py-2 small">
+                                                No recent local news detected. Sentiment is stable.
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <div className="progress mb-2" style={{ height: '8px' }}>
+                                                    <div className="progress-bar bg-success" style={{ width: `${country.local_sentiment.positive_percent}%` }}></div>
+                                                    <div className="progress-bar bg-secondary" style={{ width: `${country.local_sentiment.neutral_percent}%` }}></div>
+                                                    <div className="progress-bar bg-danger" style={{ width: `${country.local_sentiment.negative_percent}%` }}></div>
+                                                </div>
+                                                <div className="d-flex justify-content-between small text-muted">
+                                                    <span>{country.local_sentiment.positive_percent}% Pos</span>
+                                                    <span>{country.local_sentiment.neutral_percent}% Neu</span>
+                                                    <span>{country.local_sentiment.negative_percent}% Neg</span>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}

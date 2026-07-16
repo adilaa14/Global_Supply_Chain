@@ -51,18 +51,27 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('tracking')->group(function () {
         Route::get('/map-data', [\App\Http\Controllers\Api\VesselController::class, 'globalMapData']);
         Route::get('/vessels/{id}/live', [\App\Http\Controllers\Api\VesselController::class, 'liveData']);
+        Route::get('/ports/list', [\App\Http\Controllers\Api\VesselController::class, 'listPorts']);
+        Route::post('/vessels/{id}/redirect', [\App\Http\Controllers\Api\VesselController::class, 'redirectVessel']);
     });
 
     // Country Intelligence API
     Route::prefix('countries')->group(function () {
         Route::get('/', [\App\Http\Controllers\Api\CountryController::class, 'index']);
         Route::get('/list', [\App\Http\Controllers\Api\CountryController::class, 'listAll']);
+        Route::get('/favorites', [\App\Http\Controllers\Api\CountryController::class, 'favorites']);
+        Route::post('/{id}/favorite', [\App\Http\Controllers\Api\CountryController::class, 'toggleFavorite']);
         Route::get('/comparison', [\App\Http\Controllers\Api\CountryComparisonController::class, 'index']);
         Route::get('/risk', [\App\Http\Controllers\Api\CountryRiskController::class, 'index']);
         Route::get('/economy', [\App\Http\Controllers\Api\CountryEconomyController::class, 'index']);
         Route::get('/trade', [\App\Http\Controllers\Api\CountryTradeController::class, 'index']);
         Route::get('/opportunity', [\App\Http\Controllers\Api\CountryController::class, 'opportunity']);
         Route::get('/{id}', [\App\Http\Controllers\Api\CountryController::class, 'show']);
+    });
+
+    // News Intelligence API
+    Route::prefix('news')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\NewsController::class, 'index']);
     });
 
     // Commodity Intelligence API
@@ -76,16 +85,6 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 });
 
-// Trade Intelligence Routes
-Route::prefix('trade')->group(function () {
-    Route::get('dashboard', [\App\Http\Controllers\Api\TradeIntelligenceController::class, 'dashboard']);
-    Route::get('opportunities', [\App\Http\Controllers\Api\TradeIntelligenceController::class, 'opportunities']);
-    Route::get('risk', [\App\Http\Controllers\Api\TradeIntelligenceController::class, 'risk']);
-    Route::get('forecast', [\App\Http\Controllers\Api\TradeIntelligenceController::class, 'forecast']);
-    Route::get('insights', [\App\Http\Controllers\Api\TradeIntelligenceController::class, 'insights']);
-    Route::get('alternative-destinations', [\App\Http\Controllers\Api\TradeIntelligenceController::class, 'alternativeDestinations']);
-    Route::get('simulation', [\App\Http\Controllers\Api\TradeIntelligenceController::class, 'getSimulations']);
-    Route::post('simulation', [\App\Http\Controllers\Api\TradeIntelligenceController::class, 'simulate']);
-});
+
 
 Route::get('/tracking/weather-overlay', [\App\Http\Controllers\Api\VesselController::class, 'weatherOverlay']);

@@ -23,12 +23,35 @@ class DashboardService
             $metrics = $this->dashboardRepository->getMetrics($companyId);
             
             $mappedMetrics = $metrics->mapWithKeys(function ($item) {
-                return [$item->metric_key => $item->numeric_value ?? $item->string_value ?? $item->json_value];
+                return [$item->metric_key => $item->numeric_value !== null ? (int)$item->numeric_value : ($item->string_value ?? $item->json_value)];
             })->toArray();
+            
+            // Calculate Global Market Sentiment
+            $recentNews = \App\Models\News::whereNotNull('sentiment')
+                ->latest('published_at')
+                ->take(50)
+                ->get();
+                
+            $sentimentStats = ['Positive' => 0, 'Neutral' => 0, 'Negative' => 0];
+            foreach ($recentNews as $news) {
+                if (isset($sentimentStats[$news->sentiment])) {
+                    $sentimentStats[$news->sentiment]++;
+                }
+            }
+            
+            $totalNews = count($recentNews);
+            $marketSentiment = [
+                'total_analyzed' => $totalNews,
+                'positive_percent' => $totalNews > 0 ? round(($sentimentStats['Positive'] / $totalNews) * 100) : 0,
+                'neutral_percent' => $totalNews > 0 ? round(($sentimentStats['Neutral'] / $totalNews) * 100) : 0,
+                'negative_percent' => $totalNews > 0 ? round(($sentimentStats['Negative'] / $totalNews) * 100) : 0,
+                'overall_status' => $sentimentStats['Negative'] > $sentimentStats['Positive'] ? 'Risk Warning' : 'Healthy',
+            ];
 
             return [
                 'snapshot' => $snapshot,
                 'metrics' => $mappedMetrics,
+                'market_sentiment' => $marketSentiment,
             ];
         });
     }

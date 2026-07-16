@@ -71,7 +71,7 @@ class TrackingService
 
         // Add history coordinates for the map polyline
         $history = $this->trackingRepository->getHistoricalPositions($vessel->id, 50);
-        $livePosition['history'] = $history->map(function($pos) {
+        $livePosition['history'] = $history->reverse()->values()->map(function($pos) {
             return [(float)$pos->latitude, (float)$pos->longitude];
         })->toArray();
 
@@ -83,6 +83,9 @@ class TrackingService
                 (float)$route->destinationPort->longitude
             ];
             $livePosition['destination_name'] = $route->destinationPort->port_name;
+            if ($route->estimated_arrival) {
+                $livePosition['estimated_arrival'] = $route->estimated_arrival;
+            }
             if ($route->route_geometry) {
                 $livePosition['route_geometry'] = json_decode($route->route_geometry, true);
             }

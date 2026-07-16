@@ -173,6 +173,36 @@ export default function CountryCompare() {
                                         </td>
                                     ))}
                                 </tr>
+                                <tr>
+                                    <td className="fw-bold text-secondary">Local Currency</td>
+                                    {countries.map(c => (
+                                        <td key={c.id} className="text-center fw-medium text-primary">
+                                            <span className="badge bg-primary-subtle text-primary border border-primary-subtle">{c.currency || 'USD'}</span>
+                                        </td>
+                                    ))}
+                                </tr>
+                                <tr>
+                                    <td className="fw-bold text-secondary">Typical Weather / Climate</td>
+                                    {countries.map(c => {
+                                        // Simple realistic climate mock based on region
+                                        let climate = "Temperate, Mild";
+                                        let icon = "partly_cloudy_day";
+                                        let color = "text-warning";
+                                        if (c.region?.includes('Africa') || c.region?.includes('Middle East')) { climate = "Hot & Arid (Desert)"; icon = "sunny"; color = "text-danger"; }
+                                        else if (c.region?.includes('Asia')) { climate = "Tropical / Monsoon"; icon = "rainy"; color = "text-info"; }
+                                        else if (c.region?.includes('Europe')) { climate = "Temperate / Continental"; icon = "ac_unit"; color = "text-primary"; }
+                                        else if (c.country_name === 'Australia') { climate = "Arid to Semi-arid"; icon = "sunny"; color = "text-warning"; }
+                                        
+                                        return (
+                                            <td key={c.id} className="text-center">
+                                                <div className="d-flex flex-column align-items-center gap-1">
+                                                    <span className={`material-symbols-outlined ${color}`}>{icon}</span>
+                                                    <span className="small text-muted">{climate}</span>
+                                                </div>
+                                            </td>
+                                        );
+                                    })}
+                                </tr>
 
                                 <tr className="bg-light">
                                     <td colSpan={countries.length + 1} className="fw-bold text-muted text-uppercase" style={{ fontSize: '12px', letterSpacing: '1px' }}>Trade & Market</td>

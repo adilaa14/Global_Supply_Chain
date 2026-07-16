@@ -43,7 +43,7 @@
 }
 
 body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     color: var(--text-main);
     margin: 0;
     overflow-x: hidden;
@@ -250,7 +250,7 @@ body {
     box-shadow: var(--bubble-shadow-small);
     outline: none;
     transition: 0.3s;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 0.9rem;
     color: var(--text-main);
 }
@@ -382,7 +382,6 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 100%;
 }
 
 .panel-card {
@@ -395,7 +394,6 @@ body {
     border: 1px solid var(--glass-border);
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease, background 0.3s ease;
     margin-bottom: 24px;
-    height: 100%;
 }
 
 /* Hover Lift, Brightness, and Expand Shadow */

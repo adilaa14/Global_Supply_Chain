@@ -131,11 +131,22 @@ export default function Dashboard() {
                     </div>
                     <div className="col-xl-3 col-lg-6">
                         <div className="stat-card">
-                            <div className="stat-info">
-                                <h6>REVENUE (MTD)<br />&nbsp;</h6>
-                                <h3>{loading ? '...' : formatCurrency(summary.metrics?.revenue_mtd || 0)}</h3>
-                                <div className="text-success-custom">
-                                    <span className="material-symbols-outlined" style={{ fontSize: '16px', verticalAlign: 'text-bottom', fontWeight: 400 }}>trending_up</span> Live Data
+                            <div className="stat-info w-100">
+                                <h6>MARKET SENTIMENT</h6>
+                                <h3 className={summary.market_sentiment?.overall_status === 'Healthy' ? 'text-success' : 'text-danger'} style={{ fontSize: '1.5rem', marginBottom: '8px' }}>
+                                    {loading ? '...' : (summary.market_sentiment?.overall_status || 'Unknown')}
+                                </h3>
+                                <div className="d-flex align-items-center gap-2 mt-2 w-100">
+                                    <div className="progress w-100" style={{ height: '8px', background: 'rgba(0,0,0,0.1)' }}>
+                                        <div className="progress-bar bg-success" style={{ width: `${summary.market_sentiment?.positive_percent || 0}%` }}></div>
+                                        <div className="progress-bar bg-secondary" style={{ width: `${summary.market_sentiment?.neutral_percent || 0}%` }}></div>
+                                        <div className="progress-bar bg-danger" style={{ width: `${summary.market_sentiment?.negative_percent || 0}%` }}></div>
+                                    </div>
+                                </div>
+                                <div className="d-flex justify-content-between mt-1" style={{ fontSize: '10px', color: '#888', fontWeight: 'bold' }}>
+                                    <span className="text-success">{summary.market_sentiment?.positive_percent || 0}% Pos</span>
+                                    <span className="text-secondary">{summary.market_sentiment?.neutral_percent || 0}% Neu</span>
+                                    <span className="text-danger">{summary.market_sentiment?.negative_percent || 0}% Neg</span>
                                 </div>
                             </div>
                         </div>
@@ -161,15 +172,31 @@ export default function Dashboard() {
                                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
                                     />
                                     {shipments.map((shipment: any) => {
-                                        // Randomize slightly for demo since we don't have real coordinates yet
-                                        const lat = (Math.random() * 80) - 40;
-                                        const lng = (Math.random() * 180) - 90;
+                                        const lat = shipment.destination_port?.latitude || (Math.random() * 80) - 40;
+                                        const lng = shipment.destination_port?.longitude || (Math.random() * 180) - 90;
+                                        const commodityName = shipment.commodity?.commodity_name || 'General Cargo';
+                                        
                                         return (
                                             <Marker key={shipment.id} position={[lat, lng]}>
                                                 <Popup>
-                                                    <strong>{shipment.shipment_number}</strong><br/>
-                                                    Status: {shipment.status}<br/>
-                                                    Type: {shipment.shipment_type}
+                                                    <div style={{ minWidth: '150px' }}>
+                                                        <h6 className="fw-bold mb-1">{shipment.shipment_number}</h6>
+                                                        <div className="d-flex flex-column gap-1" style={{ fontSize: '13px' }}>
+                                                            <div><strong>Commodity:</strong> {commodityName}</div>
+                                                            <div><strong>Qty:</strong> {shipment.quantity} {shipment.unit || 'Units'}</div>
+                                                            <div>
+                                                                <strong>Status: </strong> 
+                                                                <span className={shipment.status === 'Delayed' ? 'text-danger fw-bold' : 'text-success fw-bold'}>
+                                                                    {shipment.status}
+                                                                </span>
+                                                            </div>
+                                                            {shipment.destination_port && (
+                                                                <div className="mt-1 pt-1 border-top">
+                                                                    <strong>To:</strong> {shipment.destination_port.port_name}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
                                                 </Popup>
                                             </Marker>
                                         );
@@ -212,6 +239,54 @@ export default function Dashboard() {
                                         <p className="text-muted mt-2">No active risk alerts. All clear.</p>
                                     </div>
                                 )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Recent Shipments Table */}
+                <div className="row fade-up" style={{ animationDelay: '0.6s' }}>
+                    <div className="col-12">
+                        <div className="panel-card">
+                            <div className="panel-header mb-3">
+                                <h5 className="panel-title">Recent Shipments</h5>
+                                <Link href="/shipments" className="btn btn-sm btn-outline-primary" style={{ fontWeight: 600 }}>View All</Link>
+                            </div>
+                            <div className="table-responsive">
+                                <table className="table table-hover align-middle mb-0">
+                                    <thead className="table-light">
+                                        <tr>
+                                            <th>Tracking No.</th>
+                                            <th>Commodity</th>
+                                            <th>Origin</th>
+                                            <th>Destination</th>
+                                            <th>Quantity</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {loading ? (
+                                            <tr><td colSpan={6} className="text-center py-4">Loading shipments...</td></tr>
+                                        ) : shipments.length > 0 ? (
+                                            shipments.slice(0, 5).map((shipment: any) => (
+                                                <tr key={shipment.id}>
+                                                    <td><Link href={`/shipments/${shipment.id}`} className="fw-bold text-decoration-none">{shipment.shipment_number}</Link></td>
+                                                    <td>{shipment.commodity?.commodity_name || 'General Cargo'}</td>
+                                                    <td>{shipment.origin_port?.port_name || 'Unknown'}</td>
+                                                    <td>{shipment.destination_port?.port_name || 'Unknown'}</td>
+                                                    <td>{shipment.quantity} {shipment.unit || ''}</td>
+                                                    <td>
+                                                        <span className={`badge ${shipment.status === 'Delayed' ? 'bg-danger' : (shipment.status === 'In Transit' ? 'bg-primary' : 'bg-secondary')}`}>
+                                                            {shipment.status}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            <tr><td colSpan={6} className="text-center py-4">No recent shipments found.</td></tr>
+                                        )}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>

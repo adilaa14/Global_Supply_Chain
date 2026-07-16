@@ -9,7 +9,7 @@ class ShipmentRepository
     public function getAllShipments(?string $companyId)
     {
         return Shipment::where('company_id', $companyId)
-            ->with(['containers', 'originCountry', 'destinationCountry', 'originPort', 'destinationPort'])
+            ->with(['containers', 'originCountry', 'destinationCountry', 'originPort', 'destinationPort', 'commodity'])
             ->latest()
             ->paginate(15);
     }
@@ -17,7 +17,7 @@ class ShipmentRepository
     public function findById(?string $companyId, string $id)
     {
         return Shipment::where('company_id', $companyId)
-            ->with(['containers', 'documents', 'histories', 'statusLogs', 'originCountry', 'destinationCountry', 'originPort', 'destinationPort'])
+            ->with(['containers', 'documents', 'histories', 'statusLogs', 'originCountry', 'destinationCountry', 'originPort', 'destinationPort', 'commodity'])
             ->findOrFail($id);
     }
 

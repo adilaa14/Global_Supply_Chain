@@ -95,11 +95,14 @@ Route::middleware('auth')->group(function () {
     Route::prefix('intelligence')->name('intelligence.')->group(function () {
         Route::get('/countries', [\App\Http\Controllers\CountryIntelligenceWebController::class, 'index'])->name('countries.index');
         Route::get('/countries/compare', [\App\Http\Controllers\CountryIntelligenceWebController::class, 'compare'])->name('countries.compare');
+        Route::get('/countries/watchlist', [\App\Http\Controllers\CountryIntelligenceWebController::class, 'watchlist'])->name('countries.watchlist');
         Route::get('/countries/{id}', [\App\Http\Controllers\CountryIntelligenceWebController::class, 'show'])->name('countries.show');
 
         Route::get('/commodities', [\App\Http\Controllers\CommodityIntelligenceWebController::class, 'index'])->name('commodities.index');
         Route::get('/commodities/compare', [\App\Http\Controllers\CommodityIntelligenceWebController::class, 'compare'])->name('commodities.compare');
         Route::get('/commodities/{id}', [\App\Http\Controllers\CommodityIntelligenceWebController::class, 'show'])->name('commodities.show');
+        
+        Route::get('/news', function() { return \Inertia\Inertia::render('Intelligence/News'); })->name('news');
     });
 
     // Analytics Web Routes
@@ -111,14 +114,9 @@ Route::middleware('auth')->group(function () {
 
 require __DIR__.'/auth.php';
 
-// Trade Intelligence Routes
-Route::middleware(['auth', 'verified'])->prefix('trade')->name('trade.')->group(function () {
-    Route::get('/', function () { return \Inertia\Inertia::render('TradeIntelligence/Index'); })->name('index');
-    Route::get('/opportunity', function () { return \Inertia\Inertia::render('TradeIntelligence/Opportunity'); })->name('opportunity');
-    Route::get('/simulation', function () { return \Inertia\Inertia::render('TradeIntelligence/Simulation'); })->name('simulation');
-    Route::get('/market', function () { return \Inertia\Inertia::render('TradeIntelligence/Market'); })->name('market');
-    Route::get('/risk', function () { return \Inertia\Inertia::render('TradeIntelligence/Risk'); })->name('risk');
-    Route::get('/alternative-destination', function () { return \Inertia\Inertia::render('TradeIntelligence/AlternativeDestination'); })->name('alternative_destination');
-    Route::get('/forecast', function () { return \Inertia\Inertia::render('TradeIntelligence/Forecast'); })->name('forecast');
-    Route::get('/insights', function () { return \Inertia\Inertia::render('TradeIntelligence/Insights'); })->name('insights');
-});
+
+
+// Fallback for removed Trade Intelligence routes to prevent 404 on refresh
+Route::get('/trade/{any?}', function () {
+    return redirect('/dashboard');
+})->where('any', '.*');

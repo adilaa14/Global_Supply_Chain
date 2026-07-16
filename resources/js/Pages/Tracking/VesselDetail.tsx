@@ -21,6 +21,31 @@ export default function VesselDetail({ vesselId }: { vesselId: string }) {
     const [loading, setLoading] = useState(true);
     const [simPosition, setSimPosition] = useState<[number, number] | null>(null);
     const [autoPan, setAutoPan] = useState(true);
+    const [ports, setPorts] = useState<any[]>([]);
+    const [selectedPort, setSelectedPort] = useState('');
+    const [redirecting, setRedirecting] = useState(false);
+
+    useEffect(() => {
+        axios.get('/api/tracking/ports/list').then(res => setPorts(res.data));
+    }, []);
+
+    const handleRedirect = async () => {
+        if (!selectedPort) return;
+        setRedirecting(true);
+        try {
+            const res = await axios.post(`/api/tracking/vessels/${vesselId}/redirect`, {
+                port_id: selectedPort
+            });
+            // Force refresh live data by reloading page or fetching again
+            window.location.reload();
+        } catch (error: any) {
+            console.error("Failed to redirect", error);
+            const msg = error.response?.data?.message || "Failed to redirect vessel. Please try again.";
+            alert(msg);
+        } finally {
+            setRedirecting(false);
+        }
+    };
 
     useEffect(() => {
         const fetchLiveData = async () => {
@@ -178,8 +203,23 @@ export default function VesselDetail({ vesselId }: { vesselId: string }) {
 
                 <div className="row g-4">
                     <div className="col-xl-4 fade-up" style={{ animationDelay: '0.2s' }}>
-                        <div className="panel-card mb-4">
+                        <div className="panel-card mb-4" style={{ height: 'auto' }}>
                             <h5 className="panel-title mb-4">Vessel Instruments</h5>
+
+                            {liveData.estimated_arrival && (
+                                <div className="d-flex align-items-center justify-content-between mb-4 p-3 rounded-3" style={{ backgroundColor: 'var(--primary-light)', border: '1px solid rgba(13, 110, 253, 0.2)' }}>
+                                    <div>
+                                        <h6 className="text-primary small fw-bold mb-1">ESTIMATED ARRIVAL (ETA)</h6>
+                                        <h5 className="fw-bold text-secondary mb-1">
+                                            {new Date(liveData.estimated_arrival).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+                                        </h5>
+                                        <span className="badge bg-white text-primary border shadow-sm">
+                                            {Math.max(0, Math.ceil((new Date(liveData.estimated_arrival).getTime() - new Date().getTime()) / (1000 * 3600 * 24)))} days remaining
+                                        </span>
+                                    </div>
+                                    <span className="material-symbols-outlined text-primary" style={{ fontSize: '36px' }}>event_available</span>
+                                </div>
+                            )}
                             
                             <div className="d-flex align-items-center justify-content-between mb-3 p-3 bg-light rounded-3">
                                 <div>
@@ -192,7 +232,7 @@ export default function VesselDetail({ vesselId }: { vesselId: string }) {
                             <div className="d-flex align-items-center justify-content-between mb-3 p-3 bg-light rounded-3">
                                 <div>
                                     <h6 className="text-muted small fw-bold mb-1">HEADING</h6>
-                                    <h4 className="fw-bold text-secondary mb-0">{liveData.heading}°</h4>
+                                    <h4 className="fw-bold text-secondary mb-0">{Number(liveData.heading).toFixed(1)}°</h4>
                                 </div>
                                 <span className="material-symbols-outlined text-info" style={{ fontSize: '32px', transform: `rotate(${liveData.heading}deg)` }}>navigation</span>
                             </div>
@@ -219,6 +259,36 @@ export default function VesselDetail({ vesselId }: { vesselId: string }) {
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+
+                        {/* Route Management Panel */}
+                        <div className="panel-card mt-4 fade-up" style={{ animationDelay: '0.4s', height: 'auto' }}>
+                            <h5 className="panel-title mb-4">Route Management</h5>
+                            <div className="mb-3">
+                                <label className="form-label text-muted small fw-bold">REDIRECT DESTINATION (PORT)</label>
+                                <select 
+                                    className="form-select bg-light border-light mb-3"
+                                    value={selectedPort}
+                                    onChange={e => setSelectedPort(e.target.value)}
+                                >
+                                    <option value="">-- Select Target Port --</option>
+                                    {ports.map(p => (
+                                        <option key={p.id} value={p.id}>⚓ {p.port_name} ({p.country?.country_name || 'Global'})</option>
+                                    ))}
+                                </select>
+                                <button 
+                                    className="btn btn-primary w-100 fw-bold d-flex align-items-center justify-content-center gap-2"
+                                    onClick={handleRedirect}
+                                    disabled={!selectedPort || redirecting}
+                                >
+                                    {redirecting ? (
+                                        <span className="spinner-border spinner-border-sm" role="status"></span>
+                                    ) : (
+                                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>alt_route</span>
+                                    )}
+                                    Update Destination Route
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -260,10 +330,10 @@ export default function VesselDetail({ vesselId }: { vesselId: string }) {
                                         </Marker>
                                     )}
 
-                                    {/* Travelled Route (Solid) - Snapped to Geometry */}
-                                    {travelledGeometry.length > 0 && simPosition && (
+                                    {/* Travelled Route (Solid) - Always use history for accurate tracking */}
+                                    {liveData.history && liveData.history.length > 0 && simPosition && (
                                         <Polyline 
-                                            positions={[...travelledGeometry, simPosition]} 
+                                            positions={[...liveData.history, simPosition]} 
                                             pathOptions={{ color: '#F03164', weight: 4, opacity: 0.8 }} 
                                         />
                                     )}

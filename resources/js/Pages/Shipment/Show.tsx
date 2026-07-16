@@ -102,7 +102,38 @@ export default function ShipmentShow({ shipmentId }: { shipmentId: string }) {
                             </div>
                         </div>
 
-                        <div className="panel-card">
+                        {/* Cargo Details Panel */}
+                        <div className="panel-card mb-4 fade-up" style={{ animationDelay: '0.25s' }}>
+                            <h5 className="panel-title mb-4">Cargo Details</h5>
+                            <div className="row g-4">
+                                <div className="col-md-3">
+                                    <h6 className="text-muted small fw-bold mb-1">COMMODITY</h6>
+                                    <h5 className="fw-bold text-secondary mb-0">
+                                        {shipment.commodity?.commodity_name || 'N/A'}
+                                    </h5>
+                                </div>
+                                <div className="col-md-3">
+                                    <h6 className="text-muted small fw-bold mb-1">QUANTITY</h6>
+                                    <h5 className="fw-bold text-secondary mb-0">
+                                        {shipment.quantity ? `${Number(shipment.quantity).toLocaleString()} ${shipment.unit || ''}` : 'N/A'}
+                                    </h5>
+                                </div>
+                                <div className="col-md-3">
+                                    <h6 className="text-muted small fw-bold mb-1">TOTAL WEIGHT</h6>
+                                    <h5 className="fw-bold text-secondary mb-0">
+                                        {shipment.weight ? `${Number(shipment.weight).toLocaleString()} KG` : 'N/A'}
+                                    </h5>
+                                </div>
+                                <div className="col-md-3">
+                                    <h6 className="text-muted small fw-bold mb-1">ESTIMATED VALUE</h6>
+                                    <h5 className="fw-bold text-success mb-0">
+                                        {shipment.estimated_value ? `$${Number(shipment.estimated_value).toLocaleString()}` : 'N/A'}
+                                    </h5>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="panel-card fade-up" style={{ animationDelay: '0.3s' }}>
                             <div className="d-flex justify-content-between align-items-center mb-4">
                                 <h5 className="panel-title mb-0">Containers</h5>
                                 <button className="btn btn-sm btn-outline-primary rounded-pill">Add Container</button>
@@ -140,7 +171,7 @@ export default function ShipmentShow({ shipmentId }: { shipmentId: string }) {
 
                     {/* Right Column: Timeline & Side Info */}
                     <div className="col-xl-4 fade-up" style={{ animationDelay: '0.3s' }}>
-                        <div className="panel-card mb-4 h-100">
+                        <div className="panel-card mb-4">
                             <h5 className="panel-title mb-4">Shipment Timeline</h5>
                             
                             <div className="timeline-container ps-3" style={{ borderLeft: '2px solid var(--glass-border)', position: 'relative' }}>

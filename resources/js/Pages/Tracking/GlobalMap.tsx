@@ -177,7 +177,7 @@ export default function GlobalMap() {
                                         <span className="badge bg-primary mb-2">{vessel.type}</span>
                                         <div className="small mb-1"><strong>Status:</strong> {vessel.status}</div>
                                         <div className="small mb-1"><strong>Speed:</strong> {vessel.position.speed} knots</div>
-                                        <div className="small mb-1"><strong>Heading:</strong> {vessel.position.heading}°</div>
+                                        <div className="small mb-1"><strong>Heading:</strong> {Number(vessel.position.heading).toFixed(1)}°</div>
                                         <div className="small mb-2"><strong>Dest:</strong> {vessel.destination}</div>
                                         <Link href={`/tracking/vessels/${vessel.id}`} className="btn btn-sm btn-outline-primary w-100">
                                             View Details

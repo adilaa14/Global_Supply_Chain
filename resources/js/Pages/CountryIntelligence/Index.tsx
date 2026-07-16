@@ -46,6 +46,23 @@ export default function CountryIndex() {
         return () => clearTimeout(timeoutId);
     }, [search, region, sortBy, page]);
 
+    const toggleFavorite = async (id: string) => {
+        try {
+            const res = await axios.post(`/api/countries/${id}/favorite`);
+            if (res.data.status) {
+                // Update local state
+                setCountries(countries.map(c => {
+                    if (c.id === id) {
+                        return { ...c, is_favorited: res.data.status === 'added' };
+                    }
+                    return c;
+                }));
+            }
+        } catch (error) {
+            console.error("Error toggling favorite", error);
+        }
+    };
+
     return (
         <AuthenticatedLayout>
             <Head title="Country Intelligence" />
@@ -147,7 +164,15 @@ export default function CountryIndex() {
                                                         )}
                                                     </div>
                                                     <div>
-                                                        <h6 className="mb-0 fw-bold">{country.country_name}</h6>
+                                                        <h6 className="mb-0 fw-bold d-flex align-items-center gap-2">
+                                                            {country.country_name}
+                                                            <button 
+                                                                className="btn btn-link p-0 text-decoration-none"
+                                                                onClick={() => toggleFavorite(country.id)}
+                                                            >
+                                                                <span className={`material-symbols-outlined fs-6 ${country.is_favorited ? 'text-warning' : 'text-muted'}`} style={{ fontVariationSettings: country.is_favorited ? "'FILL' 1" : "'FILL' 0" }}>star</span>
+                                                            </button>
+                                                        </h6>
                                                         <span className="text-muted small">{country.iso_code} • {country.capital}</span>
                                                     </div>
                                                 </div>

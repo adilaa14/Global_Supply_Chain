@@ -21,4 +21,9 @@ class CountryIntelligenceWebController extends Controller
     {
         return Inertia::render('CountryIntelligence/Compare');
     }
+
+    public function watchlist()
+    {
+        return Inertia::render('CountryIntelligence/Watchlist');
+    }
 }

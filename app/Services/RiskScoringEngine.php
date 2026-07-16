@@ -23,12 +23,12 @@ class RiskScoringEngine
         $newsSentimentData = $this->getNewsSentimentRisk($country->name);
 
         // 2. Aggregate Risk Scores (0-100 scale, higher means higher risk)
-        // Weighted calculation can be applied here. For now, simple average.
+        // Weighted calculation: Weather 30%, Inflation 20%, Currency 10%, Political News 40%
         $totalRiskScore = (
-            ($weatherData['risk_score'] * 0.20) + 
-            ($inflationData['risk_score'] * 0.30) + 
-            ($exchangeRateData['risk_score'] * 0.20) + 
-            ($newsSentimentData['risk_score'] * 0.30)
+            ($weatherData['risk_score'] * 0.30) + 
+            ($inflationData['risk_score'] * 0.20) + 
+            ($exchangeRateData['risk_score'] * 0.10) + 
+            ($newsSentimentData['risk_score'] * 0.40)
         );
 
         $riskLevel = $this->determineRiskLevel($totalRiskScore);

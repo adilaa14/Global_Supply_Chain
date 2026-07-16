@@ -18,4 +18,5 @@ class Country extends Model
     public function tradeAgreements() { return $this->hasMany(CountryTradeAgreement::class); }
     public function regulations() { return $this->hasMany(CountryRegulation::class); }
     public function ports() { return $this->hasMany(Port::class); }
+    public function userFavorites() { return $this->hasMany(UserFavorite::class); }
 }

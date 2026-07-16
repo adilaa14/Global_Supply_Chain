@@ -17,6 +17,12 @@ class CountryController extends Controller
     {
         $query = Country::with(['economy', 'risk', 'opportunity', 'tradeStatistics', 'ranking']);
         
+        if (auth('sanctum')->check()) {
+            $query->withExists(['userFavorites as is_favorited' => function($q) {
+                $q->where('user_id', auth('sanctum')->id());
+            }]);
+        }
+        
         if ($request->has('region')) {
             $query->where('region', $request->region);
         }
@@ -156,6 +162,63 @@ class CountryController extends Controller
             'total_score' => $macroData['total_score'],
         ]);
 
+        if (auth()->check()) {
+            $country->setAttribute('is_favorited', \App\Models\UserFavorite::where('user_id', auth()->id())
+                ->where('country_id', $country->id)->exists());
+        }
+
+        // Add Local Sentiment
+        $recentNews = \App\Models\News::where('country_id', $country->id)->whereNotNull('sentiment')->latest('published_at')->take(10)->get();
+        $sentimentStats = ['Positive' => 0, 'Neutral' => 0, 'Negative' => 0];
+        foreach ($recentNews as $news) {
+            if (isset($sentimentStats[$news->sentiment])) {
+                $sentimentStats[$news->sentiment]++;
+            }
+        }
+        $totalNews = count($recentNews);
+        $country->setAttribute('local_sentiment', [
+            'total_analyzed' => $totalNews,
+            'positive_percent' => $totalNews > 0 ? round(($sentimentStats['Positive'] / $totalNews) * 100) : 0,
+            'neutral_percent' => $totalNews > 0 ? round(($sentimentStats['Neutral'] / $totalNews) * 100) : 100,
+            'negative_percent' => $totalNews > 0 ? round(($sentimentStats['Negative'] / $totalNews) * 100) : 0,
+            'overall_status' => $totalNews == 0 ? 'No Data' : ($sentimentStats['Negative'] > $sentimentStats['Positive'] ? 'High Risk' : ($sentimentStats['Positive'] > $sentimentStats['Negative'] ? 'Favorable' : 'Neutral')),
+            'recent_articles' => $recentNews
+        ]);
+
         return response()->json($country);
+    }
+
+    public function toggleFavorite(Request $request, $id)
+    {
+        $user = auth()->user();
+        if (!$user) return response()->json(['error' => 'Unauthorized'], 401);
+
+        $exists = \App\Models\UserFavorite::where('user_id', $user->id)
+            ->where('country_id', $id)->first();
+
+        if ($exists) {
+            $exists->delete();
+            return response()->json(['status' => 'removed']);
+        } else {
+            \App\Models\UserFavorite::create([
+                'user_id' => $user->id,
+                'country_id' => $id
+            ]);
+            return response()->json(['status' => 'added']);
+        }
+    }
+
+    public function favorites(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user) return response()->json(['error' => 'Unauthorized'], 401);
+
+        $countryIds = \App\Models\UserFavorite::where('user_id', $user->id)->pluck('country_id');
+        
+        $countries = Country::with(['economy', 'risk', 'opportunity', 'ranking'])
+            ->whereIn('id', $countryIds)
+            ->get();
+            
+        return response()->json($countries);
     }
 }

@@ -9,4 +9,9 @@ class Port extends Model
 {
     use HasUuids;
     protected $guarded = [];
+
+    public function country()
+    {
+        return $this->belongsTo(Country::class, 'country_id');
+    }
 }
