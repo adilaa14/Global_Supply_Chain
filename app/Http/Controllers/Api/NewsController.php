@@ -27,7 +27,7 @@ class NewsController extends Controller
         // Reduced cache time so news refreshes faster
         $cacheKey = "gnews_rss_" . md5($category . $countryName);
 
-        $news = Cache::remember($cacheKey, 1800, function () use ($category, $countryName) {
+        $news = Cache::remember($cacheKey, 1800, function () use ($category, $countryName, $country) {
             $searchQuery = $category;
             if ($category === 'Logistics OR Trade OR Shipping OR Economy') {
                 $searchQuery = '(Logistics OR Trade OR Shipping OR Economy)';
@@ -113,6 +113,46 @@ class NewsController extends Controller
 
             return ['articles' => $articles];
         });
+
+        // Get Local News from Database based on Category
+        $localQuery = \App\Models\News::query();
+        
+        // Filter by requested Country
+        $isoCode = strtoupper($country);
+        $localQuery->whereHas('country', function($q) use ($isoCode) {
+            $q->where('iso_code', $isoCode);
+        });
+        
+        // If it's a specific category (not the wildcard), filter by it tightly
+        if ($category !== 'Logistics OR Trade OR Shipping OR Economy') {
+            $localQuery->where(function($q) use ($category) {
+                $q->where('category', 'like', "%{$category}%")
+                  ->orWhere('title', 'like', "%{$category}%");
+            });
+        }
+        
+        // Take up to 2 local articles so it balances with global news (2 local, 2 global)
+        $localNewsDB = $localQuery->orderBy('published_at', 'desc')->take(2)->get();
+        $localArticles = [];
+        
+        foreach ($localNewsDB as $localItem) {
+            // Determine icon badge based on sentiment for a placeholder image
+            $imgId = '6169052'; // default logistics image
+            if ($localItem->sentiment === 'Negative') $imgId = '11115160'; // crisis
+            if ($localItem->sentiment === 'Positive') $imgId = '3183150'; // growth
+            
+            $localArticles[] = [
+                'title' => '[LOCAL] ' . $localItem->title,
+                'description' => $localItem->summary ?: 'Click to read full local article...',
+                'url' => '#',
+                'image' => "https://images.pexels.com/photos/{$imgId}/pexels-photo-{$imgId}.jpeg?auto=compress&cs=tinysrgb&w=800",
+                'publishedAt' => $localItem->published_at ? $localItem->published_at->format('c') : date('c'),
+                'source' => ['name' => $localItem->source ?: 'Internal System']
+            ];
+        }
+
+        // Merge local articles to the top of the cached feed
+        $news['articles'] = array_merge($localArticles, $news['articles']);
 
         return response()->json($news);
     }

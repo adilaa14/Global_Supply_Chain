@@ -23,8 +23,8 @@ export default function AuthenticatedLayout({
                 {/* Sidebar */}
                 <aside className="sidebar fade-up" style={{ animationDelay: '0.1s' }}>
                     <div className="sidebar-header">
-                        <span className="material-symbols-outlined brand-icon">public</span>
-                        <span className="nav-text">G-SCRI</span>
+                        <span className="material-symbols-outlined brand-icon" style={{ background: 'linear-gradient(135deg, var(--primary), #ff6b8b)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', display: 'inline-block', fontWeight: 'bold' }}>hub</span>
+                        <span className="nav-text" style={{ fontWeight: 800, background: 'linear-gradient(135deg, var(--secondary), #4a5568)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', letterSpacing: '-0.5px', marginLeft: '-4px' }}>Global Chain</span>
                     </div>
                     <ul className="sidebar-menu">
                         <li className="nav-section-title nav-text" style={{ padding: '10px 20px', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '1px', textTransform: 'uppercase' }}>Core</li>
@@ -44,12 +44,17 @@ export default function AuthenticatedLayout({
                         
                         <li className="nav-section-title nav-text" style={{ padding: '10px 20px', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '1px', textTransform: 'uppercase', marginTop: '10px' }}>System</li>
                         <li><a href="#"><span className="material-symbols-outlined">settings</span> <span className="nav-text">System Settings</span></a></li>
+                        
+                        {(usePage().props.auth as any).roles?.includes('Administrator') && (
+                            <li>
+                                <Link href="/admin/dashboard" className={route().current('admin.*') ? 'active' : ''}>
+                                    <span className="material-symbols-outlined">admin_panel_settings</span> 
+                                    <span className="nav-text">Admin Panel</span>
+                                </Link>
+                            </li>
+                        )}
                     </ul>
 
-                    <div className="sidebar-cta">
-                        <p className="nav-text">Unlock Advanced Features for Enterprise</p>
-                        <button className="btn-cta nav-text">UPGRADE PRO</button>
-                    </div>
                 </aside>
 
                 {/* Main Content */}
@@ -61,16 +66,53 @@ export default function AuthenticatedLayout({
                             <input type="text" placeholder="Search shipments, ports, countries..." />
                         </div>
                         <div className="topbar-right">
-                            <div className="topbar-icon" title="Language">
-                                <span className="material-symbols-outlined">language</span>
-                            </div>
-                            <div className="topbar-icon" title="Dark Mode">
-                                <span className="material-symbols-outlined">dark_mode</span>
-                            </div>
-                            <div className="topbar-icon" title="Notifications">
-                                <span className="material-symbols-outlined">notifications_active</span>
-                                <span className="badge">3</span>
-                            </div>
+                            <Dropdown>
+                                <Dropdown.Trigger>
+                                    <div className="topbar-icon" title="Language" style={{ cursor: 'pointer' }}>
+                                        <span className="material-symbols-outlined">language</span>
+                                    </div>
+                                </Dropdown.Trigger>
+                                <Dropdown.Content>
+                                    <button 
+                                        onClick={() => {
+                                            const select = document.querySelector('.goog-te-combo') as HTMLSelectElement;
+                                            if (select) { select.value = 'en'; select.dispatchEvent(new Event('change')); }
+                                        }}
+                                        className="block w-full px-4 py-2 text-start text-sm leading-5 text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition duration-150 ease-in-out"
+                                    >
+                                        English (EN)
+                                    </button>
+                                    <button 
+                                        onClick={() => {
+                                            const select = document.querySelector('.goog-te-combo') as HTMLSelectElement;
+                                            if (select) { select.value = 'id'; select.dispatchEvent(new Event('change')); }
+                                        }}
+                                        className="block w-full px-4 py-2 text-start text-sm leading-5 text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition duration-150 ease-in-out"
+                                    >
+                                        Bahasa Indonesia (ID)
+                                    </button>
+                                    <button 
+                                        onClick={() => {
+                                            const select = document.querySelector('.goog-te-combo') as HTMLSelectElement;
+                                            if (select) { select.value = 'zh-CN'; select.dispatchEvent(new Event('change')); }
+                                        }}
+                                        className="block w-full px-4 py-2 text-start text-sm leading-5 text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition duration-150 ease-in-out"
+                                    >
+                                        中文 (Chinese)
+                                    </button>
+                                    <button 
+                                        onClick={() => {
+                                            const select = document.querySelector('.goog-te-combo') as HTMLSelectElement;
+                                            if (select) { select.value = 'ja'; select.dispatchEvent(new Event('change')); }
+                                        }}
+                                        className="block w-full px-4 py-2 text-start text-sm leading-5 text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition duration-150 ease-in-out"
+                                    >
+                                        日本語 (Japanese)
+                                    </button>
+                                </Dropdown.Content>
+                            </Dropdown>
+                            
+
                             
                             <Dropdown>
                                 <Dropdown.Trigger>

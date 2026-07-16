@@ -29,6 +29,40 @@
         @inertiaHead
     </head>
     <body class="font-sans antialiased">
+        <div id="google_translate_element" style="display: none;"></div>
+        <script type="text/javascript">
+            function googleTranslateElementInit() {
+                new google.translate.TranslateElement({pageLanguage: 'en', autoDisplay: false}, 'google_translate_element');
+            }
+
+            // Prevent Google Translate from breaking Material Icons
+            document.addEventListener('DOMContentLoaded', () => {
+                const addNoTranslate = () => {
+                    document.querySelectorAll('.material-symbols-outlined').forEach(el => {
+                        if (!el.classList.contains('notranslate')) {
+                            el.classList.add('notranslate');
+                            el.setAttribute('translate', 'no');
+                        }
+                    });
+                };
+                addNoTranslate(); // Initial run
+                
+                // Observe DOM for dynamic React renders
+                const observer = new MutationObserver(addNoTranslate);
+                observer.observe(document.body, { childList: true, subtree: true });
+            });
+        </script>
+        <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+        <style>
+            /* Hide Google Translate top banner and default widget */
+            .skiptranslate > iframe.skiptranslate { display: none !important; visibility: hidden !important; }
+            body { top: 0px !important; position: static !important; }
+            #goog-gt-tt { display: none !important; }
+            .goog-tooltip { display: none !important; }
+            .goog-tooltip:hover { display: none !important; }
+            .goog-text-highlight { background-color: transparent !important; border: none !important; box-shadow: none !important; }
+        </style>
+        
         @inertia
     </body>
 </html>

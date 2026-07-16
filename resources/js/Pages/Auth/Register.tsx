@@ -25,9 +25,9 @@ export default function Register() {
 
             <div className="login-card fade-up">
                 <div className="login-logo text-center mb-6">
-                    <span className="material-symbols-outlined text-[42px] text-[var(--primary)] mb-3">domain_add</span>
+                    <span className="material-symbols-outlined text-[42px] mb-3" style={{ background: 'linear-gradient(135deg, var(--primary), #ff6b8b)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', display: 'inline-block' }}>domain_add</span>
                     <h4 className="font-bold text-[var(--secondary)] mb-1 tracking-tight text-xl">Company Registration</h4>
-                    <p className="text-[var(--text-muted)] text-sm">Join the G-SCRI Enterprise Network</p>
+                    <p className="text-[var(--text-muted)] text-sm">Join the Global Chain Enterprise Network</p>
                 </div>
 
                 <form onSubmit={submit}>

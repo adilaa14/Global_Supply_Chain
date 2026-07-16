@@ -23,8 +23,8 @@ export default function Login({ status, canResetPassword }: { status?: string, c
 
             <div className="login-card fade-up">
                 <div className="login-logo text-center mb-8">
-                    <span className="material-symbols-outlined text-[52px] text-[var(--primary)] mb-4">public</span>
-                    <h4 className="font-bold text-[var(--secondary)] mb-1 tracking-tight text-2xl">G-SCRI Platform</h4>
+                    <span className="material-symbols-outlined text-[52px] mb-4" style={{ background: 'linear-gradient(135deg, var(--primary), #ff6b8b)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', display: 'inline-block', fontWeight: 'bold' }}>hub</span>
+                    <h4 className="font-bold mb-1 tracking-tight text-2xl" style={{ background: 'linear-gradient(135deg, var(--secondary), #4a5568)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Global Chain</h4>
                     <p className="text-[var(--text-muted)] text-sm">Enterprise Decision Support System</p>
                 </div>
 

@@ -177,7 +177,7 @@ export default function Dashboard() {
                                         const commodityName = shipment.commodity?.commodity_name || 'General Cargo';
                                         
                                         return (
-                                            <Marker key={shipment.id} position={[lat, lng]}>
+                                            <Marker key={`shipment-${shipment.id}`} position={[lat, lng]}>
                                                 <Popup>
                                                     <div style={{ minWidth: '150px' }}>
                                                         <h6 className="fw-bold mb-1">{shipment.shipment_number}</h6>
@@ -196,6 +196,38 @@ export default function Dashboard() {
                                                                 </div>
                                                             )}
                                                         </div>
+                                                    </div>
+                                                </Popup>
+                                            </Marker>
+                                        );
+                                    })}
+
+                                    {/* Render Risk Alerts on Map */}
+                                    {alerts.filter(a => a.lat && a.lng).map((alert: any) => {
+                                        const isWeather = alert.category === 'Weather Alert';
+                                        
+                                        const alertIcon = L.divIcon({
+                                            className: 'custom-alert-marker',
+                                            html: `<div style="background-color: ${isWeather ? 'var(--primary)' : '#f59e0b'}; color: white; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; box-shadow: 0 0 15px ${isWeather ? 'rgba(240,49,100,0.6)' : 'rgba(245,158,11,0.6)'}; border: 2px solid white; animation: pulse-alert 2s infinite;">
+                                                <span class="material-symbols-outlined" style="font-size: 20px;">${isWeather ? 'storm' : 'warning'}</span>
+                                            </div>`,
+                                            iconSize: [36, 36],
+                                            iconAnchor: [18, 18],
+                                            popupAnchor: [0, -18]
+                                        });
+
+                                        return (
+                                            <Marker key={`alert-${alert.id}`} position={[alert.lat, alert.lng]} icon={alertIcon}>
+                                                <Popup>
+                                                    <div style={{ minWidth: '200px' }}>
+                                                        <div className="d-flex align-items-center gap-2 mb-2 pb-2 border-bottom">
+                                                            <span className="material-symbols-outlined text-danger" style={{ fontSize: '20px' }}>
+                                                                {isWeather ? 'storm' : 'warning'}
+                                                            </span>
+                                                            <h6 className="fw-bold mb-0 text-danger">{alert.title}</h6>
+                                                        </div>
+                                                        <p className="mb-2 text-muted" style={{ fontSize: '13px' }}>{alert.message}</p>
+                                                        <span className="badge bg-danger">{alert.severity} Risk</span>
                                                     </div>
                                                 </Popup>
                                             </Marker>
