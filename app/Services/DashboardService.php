@@ -20,11 +20,18 @@ class DashboardService
         
         return Cache::remember($cacheKey, 300, function () use ($companyId) {
             $snapshot = $this->dashboardRepository->getLatestSnapshot($companyId);
-            $metrics = $this->dashboardRepository->getMetrics($companyId);
-            
-            $mappedMetrics = $metrics->mapWithKeys(function ($item) {
-                return [$item->metric_key => $item->numeric_value !== null ? (int)$item->numeric_value : ($item->string_value ?? $item->json_value)];
-            })->toArray();
+            // Calculate real-time metrics directly from the Shipments table
+            $totalShipments = \App\Models\Shipment::where('company_id', $companyId)->count();
+            $activeShipments = \App\Models\Shipment::where('company_id', $companyId)
+                ->whereIn('status', ['In Transit', 'Customs Clearance', 'At Port', 'Preparing'])->count();
+            $delayedShipments = \App\Models\Shipment::where('company_id', $companyId)
+                ->where('status', 'Delayed')->count();
+
+            $mappedMetrics = [
+                'total_shipments' => $totalShipments,
+                'active_shipments' => $activeShipments,
+                'delayed_shipments' => $delayedShipments,
+            ];
             
             // Calculate Global Market Sentiment
             $recentNews = \App\Models\News::whereNotNull('sentiment')

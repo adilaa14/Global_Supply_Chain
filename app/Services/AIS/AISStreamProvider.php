@@ -95,9 +95,21 @@ class AISStreamProvider implements AISProviderInterface
                 $lng += (rand(-10, 10) / 1000);
             }
         } else {
-            $lat = (float) rand(-4000, 4000) / 100;
-            $lng = (float) rand(-10000, 10000) / 100;
-            $heading = rand(0, 360);
+            $route = \App\Models\VesselRoute::where('vessel_id', $vessel->id)->where('is_active', true)->first();
+            if ($route && $route->route_geometry) {
+                $geometry = json_decode($route->route_geometry, true);
+                if (count($geometry) > 0) {
+                    $lat = $geometry[0][0];
+                    $lng = $geometry[0][1];
+                } else {
+                    $lat = -6.1;
+                    $lng = 106.88;
+                }
+            } else {
+                $lat = -6.1; // Default Jakarta
+                $lng = 106.88;
+            }
+            $heading = 0;
         }
 
         return [

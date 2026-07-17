@@ -1,30 +1,51 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 
 export default function ShipmentCreate() {
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
+    const [ports, setPorts] = useState([]);
+    const [vessels, setVessels] = useState([]);
     const [formData, setFormData] = useState({
         shipment_number: '',
         shipment_type: 'Export',
-        origin_country: '',
-        destination_country: '',
-        origin_port: '',
-        destination_port: '',
+        origin_port_id: '',
+        destination_port_id: '',
         priority: 'Normal',
-        carrier: '',
-        vessel: '',
-        departure_date: ''
+        vessel_id: ''
     });
+    const [cargoData, setCargoData] = useState({
+        quantity: '',
+        weight: '',
+        estimated_value: ''
+    });
+    const [containerData, setContainerData] = useState({
+        container_number: '',
+        container_type: 'Dry',
+        container_size: '20ft'
+    });
+
+    useEffect(() => {
+        axios.get('/api/tracking/ports/list').then(res => setPorts(res.data));
+        axios.get('/api/tracking/vessels').then(res => setVessels(res.data));
+    }, []);
 
     const handleChange = (e: any) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+    const handleCargoChange = (e: any) => {
+        setCargoData({ ...cargoData, [e.target.name]: e.target.value });
+    };
+
+    const handleContainerChange = (e: any) => {
+        setContainerData({ ...containerData, [e.target.name]: e.target.value });
+    };
+
     const handleNext = () => {
-        if (step < 7) setStep(step + 1);
+        if (step < 6) setStep(step + 1);
     };
 
     const handleBack = () => {
@@ -35,12 +56,33 @@ export default function ShipmentCreate() {
         e.preventDefault();
         setLoading(true);
         try {
-            await axios.post('/api/shipments', formData);
-            router.visit('/shipments');
+            // 1. Create Core Shipment
+            const res = await axios.post('/api/shipments', formData);
+            const shipmentId = res.data.data.id;
+
+            // 2. Update Cargo Details
+            await axios.put(`/api/shipments/${shipmentId}`, cargoData);
+
+            // 3. Add Container (if container number is provided)
+            if (containerData.container_number.trim() !== '') {
+                await axios.post('/api/shipments/containers', { ...containerData, shipment_id: shipmentId });
+            }
+
+            router.visit(`/shipments/${shipmentId}`);
         } catch (error) {
             console.error('Error creating shipment', error);
             setLoading(false);
         }
+    };
+
+    const getPortName = (id: string) => {
+        const port: any = ports.find((p: any) => p.id === id);
+        return port ? `${port.port_name}, ${port.country?.country_name}` : 'Unknown';
+    };
+
+    const getVesselName = (id: string) => {
+        const vessel: any = vessels.find((v: any) => v.id === id);
+        return vessel ? vessel.name : 'Not Assigned';
     };
 
     return (
@@ -51,7 +93,7 @@ export default function ShipmentCreate() {
                 <div className="d-flex justify-content-between align-items-center mb-4 pb-2 fade-up">
                     <div>
                         <h2 className="fw-bold mb-1" style={{ color: 'var(--secondary)' }}>Create New Shipment</h2>
-                        <p className="text-muted mb-0">Step {step} of 7</p>
+                        <p className="text-muted mb-0">Step {step} of 6</p>
                     </div>
                     <Link href="/shipments" className="btn btn-outline-secondary rounded-pill">
                         Cancel
@@ -59,7 +101,7 @@ export default function ShipmentCreate() {
                 </div>
 
                 <div className="panel-card fade-up" style={{ animationDelay: '0.2s', maxWidth: '800px', margin: '0 auto' }}>
-                    <form onSubmit={step === 7 ? handleSubmit : (e) => { e.preventDefault(); handleNext(); }}>
+                    <form onSubmit={step === 6 ? handleSubmit : (e) => { e.preventDefault(); handleNext(); }}>
                         
                         {step === 1 && (
                             <div className="wizard-step">
@@ -91,44 +133,102 @@ export default function ShipmentCreate() {
                                 <h5 className="mb-4 fw-bold">Step 2: Routing</h5>
                                 <div className="row">
                                     <div className="col-md-6 mb-3">
-                                        <label className="form-label text-muted small fw-bold">Origin Country</label>
-                                        <input type="text" className="form-control-glass" name="origin_country" value={formData.origin_country} onChange={handleChange} required />
-                                    </div>
-                                    <div className="col-md-6 mb-3">
                                         <label className="form-label text-muted small fw-bold">Origin Port</label>
-                                        <input type="text" className="form-control-glass" name="origin_port" value={formData.origin_port} onChange={handleChange} required />
-                                    </div>
-                                    <div className="col-md-6 mb-3">
-                                        <label className="form-label text-muted small fw-bold">Destination Country</label>
-                                        <input type="text" className="form-control-glass" name="destination_country" value={formData.destination_country} onChange={handleChange} required />
+                                        <select className="form-control-glass" name="origin_port_id" value={formData.origin_port_id} onChange={handleChange} required>
+                                            <option value="">Select Origin Port</option>
+                                            {ports.map((p: any) => (
+                                                <option key={p.id} value={p.id}>{p.port_name} ({p.country?.country_name})</option>
+                                            ))}
+                                        </select>
                                     </div>
                                     <div className="col-md-6 mb-3">
                                         <label className="form-label text-muted small fw-bold">Destination Port</label>
-                                        <input type="text" className="form-control-glass" name="destination_port" value={formData.destination_port} onChange={handleChange} required />
+                                        <select className="form-control-glass" name="destination_port_id" value={formData.destination_port_id} onChange={handleChange} required>
+                                            <option value="">Select Destination Port</option>
+                                            {ports.map((p: any) => (
+                                                <option key={p.id} value={p.id}>{p.port_name} ({p.country?.country_name})</option>
+                                            ))}
+                                        </select>
                                     </div>
                                 </div>
                             </div>
                         )}
 
-                        {/* Skipping other steps visual implementation for brevity, showing Step 7 */}
-                        {step > 2 && step < 7 && (
-                            <div className="wizard-step text-center py-5">
-                                <span className="material-symbols-outlined text-muted mb-3" style={{ fontSize: '48px' }}>more_horiz</span>
-                                <h5 className="fw-bold">Step {step} Configuration</h5>
-                                <p className="text-muted">Fill out additional details (Commodity, Containers, Shipping, Documents).</p>
-                                <p className="small text-primary">Proceed to next step...</p>
+                        {step === 3 && (
+                            <div className="wizard-step">
+                                <h5 className="mb-4 fw-bold">Step 3: Vessel Assignment</h5>
+                                <div className="mb-3">
+                                    <label className="form-label text-muted small fw-bold">Assign to Active Fleet Vessel</label>
+                                    <select className="form-control-glass" name="vessel_id" value={formData.vessel_id} onChange={handleChange} required>
+                                        <option value="">Select a Vessel (Kapal)</option>
+                                        {vessels.map((v: any) => (
+                                            <option key={v.id} value={v.id}>{v.name} ({v.vessel_type})</option>
+                                        ))}
+                                    </select>
+                                    <small className="text-muted d-block mt-2">Selecting a vessel will instruct the global fleet engine to redirect this vessel to your destination port automatically.</small>
+                                </div>
                             </div>
                         )}
 
-                        {step === 7 && (
+                        {step === 4 && (
                             <div className="wizard-step">
-                                <h5 className="mb-4 fw-bold">Step 7: Review & Submit</h5>
+                                <h5 className="mb-4 fw-bold">Step 4: Cargo Details</h5>
+                                <div className="mb-3">
+                                    <label className="form-label text-muted small fw-bold">Total Quantity</label>
+                                    <input type="number" className="form-control-glass" name="quantity" value={cargoData.quantity} onChange={handleCargoChange} placeholder="e.g. 1000" />
+                                </div>
+                                <div className="mb-3">
+                                    <label className="form-label text-muted small fw-bold">Total Weight (KG)</label>
+                                    <input type="number" className="form-control-glass" name="weight" value={cargoData.weight} onChange={handleCargoChange} placeholder="e.g. 5000" />
+                                </div>
+                                <div className="mb-3">
+                                    <label className="form-label text-muted small fw-bold">Estimated Value (USD)</label>
+                                    <input type="number" className="form-control-glass" name="estimated_value" value={cargoData.estimated_value} onChange={handleCargoChange} placeholder="e.g. 250000" />
+                                </div>
+                            </div>
+                        )}
+
+                        {step === 5 && (
+                            <div className="wizard-step">
+                                <h5 className="mb-4 fw-bold">Step 5: Add Primary Container (Optional)</h5>
+                                <div className="mb-3">
+                                    <label className="form-label text-muted small fw-bold">Container Number</label>
+                                    <input type="text" className="form-control-glass" name="container_number" value={containerData.container_number} onChange={handleContainerChange} placeholder="e.g. MSKU1234567" />
+                                </div>
+                                <div className="row">
+                                    <div className="col-md-6 mb-3">
+                                        <label className="form-label text-muted small fw-bold">Container Type</label>
+                                        <select className="form-control-glass" name="container_type" value={containerData.container_type} onChange={handleContainerChange}>
+                                            <option value="Dry">Dry</option>
+                                            <option value="Reefer">Reefer</option>
+                                            <option value="Flat Rack">Flat Rack</option>
+                                        </select>
+                                    </div>
+                                    <div className="col-md-6 mb-3">
+                                        <label className="form-label text-muted small fw-bold">Container Size</label>
+                                        <select className="form-control-glass" name="container_size" value={containerData.container_size} onChange={handleContainerChange}>
+                                            <option value="20ft">20ft</option>
+                                            <option value="40ft">40ft</option>
+                                            <option value="40ft HC">40ft HC</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {step === 6 && (
+                            <div className="wizard-step">
+                                <h5 className="mb-4 fw-bold">Step 6: Review & Submit</h5>
                                 <div className="p-4 rounded" style={{ background: 'rgba(255,255,255,0.4)', border: '1px solid var(--glass-border)' }}>
                                     <h6 className="fw-bold">Summary</h6>
                                     <hr />
                                     <p className="mb-1"><strong>Shipment Number:</strong> {formData.shipment_number}</p>
                                     <p className="mb-1"><strong>Type:</strong> {formData.shipment_type} ({formData.priority} Priority)</p>
-                                    <p className="mb-1"><strong>Route:</strong> {formData.origin_port}, {formData.origin_country} &rarr; {formData.destination_port}, {formData.destination_country}</p>
+                                    <p className="mb-1"><strong>Route:</strong> {getPortName(formData.origin_port_id)} &rarr; {getPortName(formData.destination_port_id)}</p>
+                                    <p className="mb-1"><strong>Assigned Vessel:</strong> {getVesselName(formData.vessel_id)}</p>
+                                    <hr />
+                                    <p className="mb-1"><strong>Cargo Weight:</strong> {cargoData.weight ? `${cargoData.weight} KG` : 'Not Set'}</p>
+                                    <p className="mb-1"><strong>Container:</strong> {containerData.container_number || 'None assigned yet'}</p>
                                 </div>
                             </div>
                         )}
@@ -137,7 +237,7 @@ export default function ShipmentCreate() {
                             <button type="button" className="btn btn-outline-secondary rounded-pill px-4" onClick={handleBack} disabled={step === 1}>
                                 Back
                             </button>
-                            {step < 7 ? (
+                            {step < 6 ? (
                                 <button type="button" className="btn-primary-custom px-4" onClick={handleNext}>
                                     Next Step
                                 </button>

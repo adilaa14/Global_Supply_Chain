@@ -62,8 +62,8 @@ export default function ShipmentIndex({ initialShipments }: { initialShipments: 
                                             <td>{shipment.destination_port?.port_name || shipment.destination_country?.country_name || shipment.destination_country_id || 'TBA'}</td>
                                             <td>{shipment.estimated_arrival ? new Date(shipment.estimated_arrival).toLocaleDateString() : 'TBA'}</td>
                                             <td>
-                                                <span className={`badge bg-light text-dark border ${shipment.current_status === 'Draft' ? 'text-secondary' : 'text-success'}`}>
-                                                    ● {shipment.current_status}
+                                                <span className={`badge bg-light text-dark border ${shipment.status === 'Draft' ? 'text-secondary' : 'text-success'}`}>
+                                                    ● {shipment.status}
                                                 </span>
                                             </td>
                                             <td className="text-end">

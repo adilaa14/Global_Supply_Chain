@@ -52,9 +52,13 @@ export default function VesselDetail({ vesselId }: { vesselId: string }) {
             try {
                 // Append timestamp to prevent aggressive browser caching of the old corrupted history
                 const res = await axios.get(`/api/tracking/vessels/${vesselId}/live?t=${new Date().getTime()}`);
-                if (res.data.status === 'success') {
+                if (res.data.status === 'success' && res.data.data && res.data.data.latitude !== undefined) {
                     setLiveData(res.data.data);
-                    setSimPosition([res.data.data.latitude, res.data.data.longitude]);
+                    const lat = parseFloat(res.data.data.latitude);
+                    const lng = parseFloat(res.data.data.longitude);
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        setSimPosition([lat, lng]);
+                    }
                 }
             } catch (error) {
                 console.error('Failed to fetch live data', error);
@@ -110,6 +114,10 @@ export default function VesselDetail({ vesselId }: { vesselId: string }) {
 
                 const dLat = Math.cos(headingRad) * speedFactor;
                 const dLng = Math.sin(headingRad) * speedFactor;
+                
+                if (isNaN(dLat) || isNaN(dLng)) {
+                    return prev;
+                }
                 
                 return [prev[0] + dLat, prev[1] + dLng];
             });

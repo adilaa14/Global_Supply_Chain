@@ -50,6 +50,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Tracking API
     Route::prefix('tracking')->group(function () {
         Route::get('/map-data', [\App\Http\Controllers\Api\VesselController::class, 'globalMapData']);
+        Route::get('/vessels', [\App\Http\Controllers\Api\VesselController::class, 'listVessels']);
         Route::get('/vessels/{id}/live', [\App\Http\Controllers\Api\VesselController::class, 'liveData']);
         Route::get('/ports/list', [\App\Http\Controllers\Api\VesselController::class, 'listPorts']);
         Route::post('/vessels/{id}/redirect', [\App\Http\Controllers\Api\VesselController::class, 'redirectVessel']);

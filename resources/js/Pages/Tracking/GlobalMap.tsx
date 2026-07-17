@@ -117,16 +117,13 @@ export default function GlobalMap() {
 
         fetchMapData();
         fetchWeatherData();
-
-        // Optional: Reverb listening for live updates
-        // window.Echo.channel('tracking').listen('VesselMoved', (e) => { ... });
     }, []);
 
     const getWeatherColor = (condition: string) => {
-        if (condition === 'Typhoon' || condition === 'Storm') return '#dc3545'; // Danger (Red)
-        if (condition === 'Rain') return '#0dcaf0'; // Info (Blue)
-        if (condition === 'Cloudy') return '#ffc107'; // Warning (Yellow)
-        return '#198754'; // Success (Green)
+        if (condition === 'Typhoon' || condition === 'Storm') return '#dc3545';
+        if (condition === 'Rain') return '#0dcaf0';
+        if (condition === 'Cloudy') return '#ffc107';
+        return '#198754';
     };
 
     return (
@@ -138,7 +135,7 @@ export default function GlobalMap() {
                 <div className="d-flex justify-content-between align-items-center mb-3 fade-up">
                     <div>
                         <h2 className="fw-bold mb-1" style={{ color: 'var(--secondary)' }}>Global Vessel Map</h2>
-                        <p className="text-muted mb-0">Live tracking of active fleet operations.</p>
+                        <p className="text-muted mb-0">Live overview of active fleet operations.</p>
                     </div>
                     <div className="d-flex gap-2">
                         <Link href="/tracking/vessels" className="btn btn-outline-secondary rounded-pill">
@@ -167,7 +164,7 @@ export default function GlobalMap() {
 
                         {mapData.vessels && mapData.vessels.map((vessel: any) => (
                             <Marker 
-                                key={vessel.id} 
+                                key={`vessel-${vessel.id}`}
                                 position={[vessel.position.lat, vessel.position.lng]}
                                 icon={vesselIcon}
                             >

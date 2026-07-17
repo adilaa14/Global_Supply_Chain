@@ -22,43 +22,57 @@ export default function AdminDashboard({ users, ports, articles }: any) {
 
                 <div className="row g-4 mb-4 fade-up" style={{ animationDelay: '0.2s' }}>
                     {/* Manage Users */}
-                    <div className="col-md-4">
+                    <div className="col-md-3">
                         <div className="panel-card h-100 p-4 text-center d-flex flex-column justify-content-center">
                             <div className="mb-3">
                                 <span className="material-symbols-outlined text-primary" style={{ fontSize: '48px' }}>group</span>
                             </div>
-                            <h4 className="fw-bold">Users Management</h4>
-                            <p className="text-muted">Total Active Users: <strong>{users}</strong></p>
+                            <h5 className="fw-bold">Users</h5>
+                            <p className="text-muted small">Total: <strong>{users}</strong></p>
                             <div className="mt-auto pt-3">
-                                <Link href="/admin/users" className="btn btn-primary w-100">Manage Users</Link>
+                                <Link href="/admin/users" className="btn btn-primary btn-sm w-100">Manage Users</Link>
                             </div>
                         </div>
                     </div>
 
                     {/* Manage Ports */}
-                    <div className="col-md-4">
+                    <div className="col-md-3">
                         <div className="panel-card h-100 p-4 text-center d-flex flex-column justify-content-center">
                             <div className="mb-3">
                                 <span className="material-symbols-outlined text-success" style={{ fontSize: '48px' }}>directions_boat</span>
                             </div>
-                            <h4 className="fw-bold">Ports Dataset</h4>
-                            <p className="text-muted">Total Registered Ports: <strong>{ports}</strong></p>
+                            <h5 className="fw-bold">Ports Dataset</h5>
+                            <p className="text-muted small">Total: <strong>{ports}</strong></p>
                             <div className="mt-auto pt-3">
-                                <Link href="/admin/ports" className="btn btn-success w-100">Manage Ports</Link>
+                                <Link href="/admin/ports" className="btn btn-success btn-sm w-100">Manage Ports</Link>
                             </div>
                         </div>
                     </div>
 
                     {/* Manage Articles */}
-                    <div className="col-md-4">
+                    <div className="col-md-3">
                         <div className="panel-card h-100 p-4 text-center d-flex flex-column justify-content-center">
                             <div className="mb-3">
                                 <span className="material-symbols-outlined text-warning" style={{ fontSize: '48px' }}>article</span>
                             </div>
-                            <h4 className="fw-bold">Analysis Articles</h4>
-                            <p className="text-muted">Total Published Articles: <strong>{articles}</strong></p>
+                            <h5 className="fw-bold">Analysis Articles</h5>
+                            <p className="text-muted small">Total: <strong>{articles}</strong></p>
                             <div className="mt-auto pt-3">
-                                <Link href="/admin/articles" className="btn btn-warning text-white w-100">Manage Articles</Link>
+                                <Link href="/admin/articles" className="btn btn-warning btn-sm text-white w-100">Manage Articles</Link>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* API List */}
+                    <div className="col-md-3">
+                        <div className="panel-card h-100 p-4 text-center d-flex flex-column justify-content-center">
+                            <div className="mb-3">
+                                <span className="material-symbols-outlined text-info" style={{ fontSize: '48px' }}>api</span>
+                            </div>
+                            <h5 className="fw-bold">API Integrations</h5>
+                            <p className="text-muted small">Status: <strong>Active</strong></p>
+                            <div className="mt-auto pt-3">
+                                <Link href="/admin/apis" className="btn btn-info btn-sm text-white w-100">View APIs</Link>
                             </div>
                         </div>
                     </div>

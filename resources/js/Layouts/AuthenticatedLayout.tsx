@@ -1,5 +1,5 @@
-import { PropsWithChildren, ReactNode } from 'react';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { PropsWithChildren, ReactNode, useState, useEffect, useRef } from 'react';
+import { Head, Link, usePage, router } from '@inertiajs/react';
 import Dropdown from '@/Components/Dropdown';
 
 export default function AuthenticatedLayout({
@@ -7,6 +7,44 @@ export default function AuthenticatedLayout({
     children,
 }: PropsWithChildren<{ header?: ReactNode }>) {
     const user = usePage().props.auth.user;
+
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState<any[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const searchRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+                setSearchResults([]);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    useEffect(() => {
+        if (searchQuery.length < 2) {
+            setSearchResults([]);
+            return;
+        }
+
+        const debounceId = setTimeout(() => {
+            setIsSearching(true);
+            fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`, {
+                headers: { 'Accept': 'application/json' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    setSearchResults(data.data);
+                }
+            })
+            .finally(() => setIsSearching(false));
+        }, 300);
+
+        return () => clearTimeout(debounceId);
+    }, [searchQuery]);
 
     return (
         <>
@@ -43,8 +81,6 @@ export default function AuthenticatedLayout({
                         <li><Link href="/analytics/currency-impact" className={route().current('analytics.currency-impact') ? 'active' : ''}><span className="material-symbols-outlined">currency_exchange</span> <span className="nav-text">Currency Impact</span></Link></li>
                         
                         <li className="nav-section-title nav-text" style={{ padding: '10px 20px', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '1px', textTransform: 'uppercase', marginTop: '10px' }}>System</li>
-                        <li><a href="#"><span className="material-symbols-outlined">settings</span> <span className="nav-text">System Settings</span></a></li>
-                        
                         {(usePage().props.auth as any).roles?.includes('Administrator') && (
                             <li>
                                 <Link href="/admin/dashboard" className={route().current('admin.*') ? 'active' : ''}>
@@ -61,9 +97,57 @@ export default function AuthenticatedLayout({
                 <div className="main-content">
                     {/* Topbar */}
                     <header className="topbar fade-up" style={{ animationDelay: '0.2s' }}>
-                        <div className="search-bar">
+                        <div className="search-bar" ref={searchRef} style={{ position: 'relative' }}>
                             <span className="material-symbols-outlined">search</span>
-                            <input type="text" placeholder="Search shipments, ports, countries..." />
+                            <input 
+                                type="text" 
+                                placeholder="Search shipments, ports, vessels..." 
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                            {isSearching && (
+                                <span className="material-symbols-outlined" style={{ position: 'absolute', right: '15px', animation: 'spin 1s linear infinite' }}>sync</span>
+                            )}
+                            
+                            {searchResults.length > 0 && (
+                                <div style={{ 
+                                    position: 'absolute', top: '100%', left: 0, right: 0, 
+                                    background: 'white', borderRadius: '12px', marginTop: '10px',
+                                    boxShadow: '0 10px 25px rgba(0,0,0,0.1)', zIndex: 1000,
+                                    border: '1px solid rgba(0,0,0,0.05)', overflow: 'hidden'
+                                }}>
+                                    {searchResults.map(shipment => (
+                                        <div 
+                                            key={shipment.id}
+                                            onClick={() => {
+                                                setSearchResults([]);
+                                                setSearchQuery('');
+                                                router.visit(`/shipments/${shipment.id}`);
+                                            }}
+                                            style={{ 
+                                                padding: '12px 16px', borderBottom: '1px solid rgba(0,0,0,0.05)', 
+                                                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px'
+                                            }}
+                                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(240, 49, 100, 0.05)'}
+                                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                        >
+                                            <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: 'rgba(240, 49, 100, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)' }}>
+                                                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>local_shipping</span>
+                                            </div>
+                                            <div style={{ flex: 1 }}>
+                                                <div style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--dark)' }}>{shipment.tracking_number}</div>
+                                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                                    {shipment.origin_port?.port_name || 'Unknown'} → {shipment.destination_port?.port_name || 'Unknown'} 
+                                                    {shipment.vessel && ` (via ${shipment.vessel.name})`}
+                                                </div>
+                                            </div>
+                                            <div style={{ fontSize: '0.7rem', fontWeight: 600, color: shipment.status === 'In Transit' ? 'var(--primary)' : 'var(--text-muted)' }}>
+                                                {shipment.status}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                         <div className="topbar-right">
                             <Dropdown>

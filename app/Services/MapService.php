@@ -25,6 +25,19 @@ class MapService
         $mapData = $vessels->map(function ($vessel) {
             $latestPos = $vessel->latestPosition;
             
+            if (!$latestPos && $vessel->activeRoute && $vessel->activeRoute->route_geometry) {
+                $geom = json_decode($vessel->activeRoute->route_geometry, true);
+                if (!empty($geom)) {
+                    $latestPos = (object)[
+                        'latitude' => $geom[0][0],
+                        'longitude' => $geom[0][1],
+                        'speed' => 0,
+                        'heading' => 0,
+                        'timestamp' => now()->toDateTimeString()
+                    ];
+                }
+            }
+            
             return [
                 'id' => $vessel->id,
                 'name' => $vessel->name,
@@ -39,6 +52,7 @@ class MapService
                 ] : null,
                 'destination' => $vessel->activeRoute?->destinationPort?->port_name ?? 'Unknown',
                 'eta' => $vessel->activeRoute?->estimated_arrival ?? null,
+                'route' => $vessel->activeRoute && $vessel->activeRoute->route_geometry ? json_decode($vessel->activeRoute->route_geometry) : null,
             ];
         });
 

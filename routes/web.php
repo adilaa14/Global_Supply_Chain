@@ -12,6 +12,12 @@ Route::get('/', function () {
         'canRegister' => Route::has('register'),
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
+        'stats' => [
+            'vessels' => \App\Models\Vessel::count(),
+            'shipments' => \App\Models\Shipment::count(),
+            'companies' => \App\Models\Company::count(),
+            'users' => \App\Models\User::count(),
+        ]
     ]);
 });
 
@@ -226,4 +232,21 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
         App\Models\News::findOrFail($id)->delete();
         return redirect()->back()->with('success', 'Article deleted successfully.');
     });
+
+    Route::get('/apis', function () {
+        return \Inertia\Inertia::render('Admin/ApiList', [
+            'apis' => [
+                ['id' => 1, 'name' => 'Open-Meteo API', 'url' => 'open-meteo.com', 'type' => 'Weather Risk', 'status' => 'Active', 'description' => 'Provides free weather forecasts and historical weather data.'],
+                ['id' => 2, 'name' => 'World Bank API', 'url' => 'api.worldbank.org', 'type' => 'Intelligence', 'status' => 'Active', 'description' => 'Country GDP, macroeconomic indicators, and global statistics.'],
+                ['id' => 3, 'name' => 'REST Countries API', 'url' => 'restcountries.com', 'type' => 'Intelligence', 'status' => 'Active', 'description' => 'Provides comprehensive data about countries and regions.'],
+                ['id' => 4, 'name' => 'ExchangeRate API', 'url' => 'exchangerate-api.com', 'type' => 'Financial', 'status' => 'Active', 'description' => 'Real-time and historical currency exchange rates.'],
+                ['id' => 5, 'name' => 'Marine Traffic Alternative (Gratis)', 'url' => 'datalastic.com / vessels', 'type' => 'Vessel Tracking', 'status' => 'Active', 'description' => 'Free tier AIS alternatives for live vessel location tracking.'],
+                ['id' => 6, 'name' => 'OpenStreetMap', 'url' => 'openstreetmap.org', 'type' => 'Mapping', 'status' => 'Active', 'description' => 'Free geographic data and basemap tiles for interactive mapping.'],
+                ['id' => 7, 'name' => 'Google News RSS API', 'url' => 'news.google.com/rss', 'type' => 'Intelligence', 'status' => 'Active', 'description' => 'Real-time global news aggregation for the intelligence dashboard.'],
+                ['id' => 8, 'name' => 'Pexels Image API', 'url' => 'pexels.com', 'type' => 'UI/UX', 'status' => 'Active', 'description' => 'High-resolution dynamic thumbnail generation for news articles.'],
+                ['id' => 9, 'name' => 'World Ports Dataset', 'url' => 'raw.githubusercontent.com', 'type' => 'Dataset', 'status' => 'Active', 'description' => 'Fetches comprehensive global port locations and metadata.'],
+                ['id' => 10, 'name' => 'UI Avatars API', 'url' => 'ui-avatars.com', 'type' => 'UI/UX', 'status' => 'Active', 'description' => 'Generates dynamic profile avatars based on user initials.'],
+            ]
+        ]);
+    })->name('apis');
 });

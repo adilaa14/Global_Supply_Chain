@@ -37,14 +37,82 @@ class ShipmentController extends Controller
 
     public function store(Request $request)
     {
-        // ... Logic to store shipment
-        return response()->json(['status' => 'success', 'data' => []], 201);
+        $data = $request->validate([
+            'shipment_number' => 'required|string|max:255',
+            'shipment_type' => 'required|string',
+            'origin_port_id' => 'required|string|exists:ports,id',
+            'destination_port_id' => 'required|string|exists:ports,id',
+            'vessel_id' => 'required|string|exists:vessels,id',
+            'priority' => 'nullable|string',
+        ]);
+
+        $companyId = $request->user()->company_id;
+        
+        $originPort = \App\Models\Port::find($data['origin_port_id']);
+        $destPort = \App\Models\Port::find($data['destination_port_id']);
+        
+        // Default to a commodity
+        $commodity = \App\Models\Commodity::first();
+
+        $shipmentData = [
+            'company_id' => $companyId,
+            'shipment_number' => $data['shipment_number'],
+            'shipment_type' => $data['shipment_type'],
+            'status' => 'Preparing',
+            'origin_country_id' => $originPort ? $originPort->country_id : null,
+            'destination_country_id' => $destPort ? $destPort->country_id : null,
+            'origin_port_id' => $data['origin_port_id'],
+            'destination_port_id' => $data['destination_port_id'],
+            'commodity_id' => $commodity ? $commodity->id : null,
+            'vessel_id' => $data['vessel_id'],
+            'estimated_arrival' => now()->addDays(14),
+            'quantity' => 100,
+        ];
+
+        $shipment = $this->shipmentService->createShipment($shipmentData);
+
+        // Instruct the Global Fleet Engine to redirect the vessel!
+        if (!empty($data['vessel_id'])) {
+            try {
+                $redirectRequest = new Request([
+                    'port_id' => $data['destination_port_id'],
+                    'origin_port_id' => $data['origin_port_id']
+                ]);
+                
+                // Update shipment status to In Transit after assigning
+                $shipment->update(['status' => 'In Transit']);
+                app(\App\Http\Controllers\Api\VesselController::class)->redirectVessel($redirectRequest, $data['vessel_id']);
+            } catch (\Exception $e) {
+                // Log exception if vessel routing fails, but don't crash shipment creation
+                \Illuminate\Support\Facades\Log::error("Vessel redirect failed: " . $e->getMessage());
+            }
+        }
+
+        return response()->json([
+            'status' => 'success', 
+            'data' => $shipment,
+            'message' => 'Shipment created successfully and vessel redirected.'
+        ], 201);
     }
 
     public function update(Request $request, string $id)
     {
-        // ... Logic to update shipment
-        return response()->json(['status' => 'success', 'data' => []]);
+        $shipment = \App\Models\Shipment::findOrFail($id);
+
+        $data = $request->validate([
+            'status' => 'sometimes|string',
+            'weight' => 'sometimes|nullable|numeric',
+            'estimated_value' => 'sometimes|nullable|numeric',
+            'quantity' => 'sometimes|nullable|numeric',
+        ]);
+        
+        $shipment->update($data);
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $shipment,
+            'message' => 'Shipment updated successfully.'
+        ]);
     }
 
     public function destroy(Request $request, string $id)
