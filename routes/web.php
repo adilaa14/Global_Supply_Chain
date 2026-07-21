@@ -137,6 +137,11 @@ Route::middleware('auth')->group(function () {
 
 require __DIR__.'/auth.php';
 
+// Temporary endpoint to catch JS errors from the frontend
+Route::post('/log-js-error', function (\Illuminate\Http\Request $request) {
+    \Illuminate\Support\Facades\Log::error('JS ERROR FROM CLIENT: ' . $request->input('error') . ' | Stack: ' . $request->input('stack'));
+    return response()->json(['status' => 'logged']);
+});
 
 
 // Fallback for removed Trade Intelligence routes to prevent 404 on refresh
@@ -164,7 +169,7 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::get('/ports', function () {
         return \Inertia\Inertia::render('Admin/Ports', [
             'ports' => App\Models\Port::with('country')->latest()->paginate(50),
-            'countries' => App\Models\Country::orderBy('country_name')->get(['id', 'country_name', 'iso_alpha2'])
+            'countries' => App\Models\Country::orderBy('country_name')->get(['id', 'country_name', 'iso_code'])
         ]);
     })->name('ports');
 

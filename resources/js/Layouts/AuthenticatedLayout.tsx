@@ -7,6 +7,14 @@ export default function AuthenticatedLayout({
     children,
 }: PropsWithChildren<{ header?: ReactNode }>) {
     const user = usePage().props.auth.user;
+    
+    // Fallback if session exists but user model was deleted (e.g., after DB wipe)
+    if (!user) {
+        if (typeof window !== 'undefined') {
+            window.location.href = '/login';
+        }
+        return null;
+    }
 
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<any[]>([]);

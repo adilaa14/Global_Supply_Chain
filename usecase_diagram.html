@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Use Case Diagram</title>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true });
+    </script>
+    <style>
+        body { font-family: sans-serif; background: #f4f4f9; padding: 20px; }
+        .container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: inline-block; }
+    </style>
+</head>
+<body style="text-align: center;">
+    <div class="container">
+        <h2 style="color: #333;">Use Case Diagram - Global Supply Chain</h2>
+        <p style="color: #666; margin-bottom: 20px;">Anda bisa men-screenshot gambar ini atau langsung menirunya ke Draw.io</p>
+        <div class="mermaid">
+flowchart LR
+    classDef actor fill:#transparent,stroke:#333,stroke-width:2px,color:#000
+    classDef usecase fill:#ffffff,stroke:#00509e,stroke-width:2px,rx:25,ry:25,color:#000
+    
+    User((Pengguna\nPlatform)):::actor
+    API((API Eksternal\nAIS & Data)):::actor
+
+    subgraph Sistem [Sistem Global Supply Chain]
+        direction TB
+        
+        UC1([Login & Kelola Akun]):::usecase
+        UC2([Atur Dashboard & Widget]):::usecase
+        UC3([Kelola Pengiriman & Dokumen]):::usecase
+        UC4([Lacak Lokasi Kapal]):::usecase
+        UC5([Lihat Intelijen & Risiko Negara]):::usecase
+        UC6([Lihat Data Komoditas]):::usecase
+        UC7([Pantau Berita & Peringatan Global]):::usecase
+        
+        UC3 -.->|<<include>>| UC4
+    end
+
+    User --- UC1
+    User --- UC2
+    User --- UC3
+    User --- UC4
+    User --- UC5
+    User --- UC6
+    User --- UC7
+
+    UC4 --- API
+    UC5 --- API
+    UC6 --- API
+    UC7 --- API
+
+    style Sistem fill:#f8fbff,stroke:#00509e,stroke-width:2px,stroke-dasharray: 5 5
+        </div>
+    </div>
+</body>
+</html>

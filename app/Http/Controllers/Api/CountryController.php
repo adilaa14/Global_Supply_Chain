@@ -10,12 +10,13 @@ class CountryController extends Controller
 {
     public function listAll()
     {
-        return response()->json(Country::select('id', 'country_name', 'flag', 'iso_code')->orderBy('country_name')->get());
+        return response()->json(Country::select('id', 'country_name', 'flag', 'iso_code')->has('economy')->orderBy('country_name')->get());
     }
 
     public function index(Request $request)
     {
-        $query = Country::with(['economy', 'risk', 'opportunity', 'tradeStatistics', 'ranking']);
+        $query = Country::with(['economy', 'risk', 'opportunity', 'tradeStatistics', 'ranking'])
+                        ->has('economy');
         
         if (auth('sanctum')->check()) {
             $query->withExists(['userFavorites as is_favorited' => function($q) {

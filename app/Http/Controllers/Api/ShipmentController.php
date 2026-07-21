@@ -38,22 +38,19 @@ class ShipmentController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'shipment_number' => 'required|string|max:255',
+            'shipment_number' => 'required|string|max:255|unique:shipments,shipment_number',
             'shipment_type' => 'required|string',
             'origin_port_id' => 'required|string|exists:ports,id',
             'destination_port_id' => 'required|string|exists:ports,id',
             'vessel_id' => 'required|string|exists:vessels,id',
+            'commodity_id' => 'required|string|exists:commodities,id',
             'priority' => 'nullable|string',
         ]);
 
         $companyId = $request->user()->company_id;
-        
         $originPort = \App\Models\Port::find($data['origin_port_id']);
         $destPort = \App\Models\Port::find($data['destination_port_id']);
         
-        // Default to a commodity
-        $commodity = \App\Models\Commodity::first();
-
         $shipmentData = [
             'company_id' => $companyId,
             'shipment_number' => $data['shipment_number'],
@@ -63,7 +60,7 @@ class ShipmentController extends Controller
             'destination_country_id' => $destPort ? $destPort->country_id : null,
             'origin_port_id' => $data['origin_port_id'],
             'destination_port_id' => $data['destination_port_id'],
-            'commodity_id' => $commodity ? $commodity->id : null,
+            'commodity_id' => $data['commodity_id'],
             'vessel_id' => $data['vessel_id'],
             'estimated_arrival' => now()->addDays(14),
             'quantity' => 100,

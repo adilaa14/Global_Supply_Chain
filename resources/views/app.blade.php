@@ -64,5 +64,22 @@
         </style>
         
         @inertia
+        
+        <script>
+            window.addEventListener('error', function(event) {
+                fetch('/log-js-error', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                    body: JSON.stringify({ error: event.message, stack: event.error ? event.error.stack : 'No stack trace' })
+                });
+            });
+            window.addEventListener('unhandledrejection', function(event) {
+                fetch('/log-js-error', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                    body: JSON.stringify({ error: event.reason ? event.reason.toString() : 'Unhandled Rejection', stack: event.reason && event.reason.stack ? event.reason.stack : 'No stack trace' })
+                });
+            });
+        </script>
     </body>
 </html>

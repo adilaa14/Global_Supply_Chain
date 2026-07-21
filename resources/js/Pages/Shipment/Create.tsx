@@ -2,19 +2,22 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import Select from 'react-select';
 
 export default function ShipmentCreate() {
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [ports, setPorts] = useState([]);
     const [vessels, setVessels] = useState([]);
+    const [commodities, setCommodities] = useState<any[]>([]);
     const [formData, setFormData] = useState({
         shipment_number: '',
         shipment_type: 'Export',
         origin_port_id: '',
         destination_port_id: '',
         priority: 'Normal',
-        vessel_id: ''
+        vessel_id: '',
+        commodity_id: ''
     });
     const [cargoData, setCargoData] = useState({
         quantity: '',
@@ -30,6 +33,7 @@ export default function ShipmentCreate() {
     useEffect(() => {
         axios.get('/api/tracking/ports/list').then(res => setPorts(res.data));
         axios.get('/api/tracking/vessels').then(res => setVessels(res.data));
+        axios.get('/api/commodities/list').then(res => setCommodities(res.data));
     }, []);
 
     const handleChange = (e: any) => {
@@ -69,8 +73,16 @@ export default function ShipmentCreate() {
             }
 
             router.visit(`/shipments/${shipmentId}`);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error creating shipment', error);
+            if (error.response && error.response.data && error.response.data.errors) {
+                const errorMessages = Object.values(error.response.data.errors).flat().join('\n');
+                alert(`Validation Error:\n${errorMessages}`);
+            } else if (error.response && error.response.data && error.response.data.message) {
+                alert(`Error: ${error.response.data.message}`);
+            } else {
+                alert('An unexpected error occurred while creating the shipment.');
+            }
             setLoading(false);
         }
     };
@@ -83,6 +95,38 @@ export default function ShipmentCreate() {
     const getVesselName = (id: string) => {
         const vessel: any = vessels.find((v: any) => v.id === id);
         return vessel ? vessel.name : 'Not Assigned';
+    };
+
+    const portOptions = ports.map((p: any) => ({
+        value: p.id,
+        label: `${p.port_name} (${p.country?.country_name})`
+    }));
+
+    const selectStyles = {
+        control: (base: any) => ({
+            ...base,
+            background: 'rgba(255, 255, 255, 0.7)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.3)',
+            borderRadius: '0.5rem',
+            padding: '2px',
+            boxShadow: 'none',
+            '&:hover': {
+                border: '1px solid rgba(255, 255, 255, 0.5)'
+            }
+        }),
+        menu: (base: any) => ({
+            ...base,
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(10px)',
+            zIndex: 100
+        }),
+        option: (base: any, state: any) => ({
+            ...base,
+            background: state.isSelected ? '#0d6efd' : state.isFocused ? 'rgba(13, 110, 253, 0.1)' : 'transparent',
+            color: state.isSelected ? 'white' : 'black',
+            cursor: 'pointer'
+        })
     };
 
     return (
@@ -134,21 +178,27 @@ export default function ShipmentCreate() {
                                 <div className="row">
                                     <div className="col-md-6 mb-3">
                                         <label className="form-label text-muted small fw-bold">Origin Port</label>
-                                        <select className="form-control-glass" name="origin_port_id" value={formData.origin_port_id} onChange={handleChange} required>
-                                            <option value="">Select Origin Port</option>
-                                            {ports.map((p: any) => (
-                                                <option key={p.id} value={p.id}>{p.port_name} ({p.country?.country_name})</option>
-                                            ))}
-                                        </select>
+                                        <Select 
+                                            options={portOptions}
+                                            styles={selectStyles}
+                                            value={portOptions.find(o => o.value === formData.origin_port_id) || null}
+                                            onChange={(selected: any) => setFormData({ ...formData, origin_port_id: selected ? selected.value : '' })}
+                                            placeholder="Select Origin Port"
+                                            isClearable
+                                            isSearchable
+                                        />
                                     </div>
                                     <div className="col-md-6 mb-3">
                                         <label className="form-label text-muted small fw-bold">Destination Port</label>
-                                        <select className="form-control-glass" name="destination_port_id" value={formData.destination_port_id} onChange={handleChange} required>
-                                            <option value="">Select Destination Port</option>
-                                            {ports.map((p: any) => (
-                                                <option key={p.id} value={p.id}>{p.port_name} ({p.country?.country_name})</option>
-                                            ))}
-                                        </select>
+                                        <Select 
+                                            options={portOptions}
+                                            styles={selectStyles}
+                                            value={portOptions.find(o => o.value === formData.destination_port_id) || null}
+                                            onChange={(selected: any) => setFormData({ ...formData, destination_port_id: selected ? selected.value : '' })}
+                                            placeholder="Select Destination Port"
+                                            isClearable
+                                            isSearchable
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -173,6 +223,15 @@ export default function ShipmentCreate() {
                         {step === 4 && (
                             <div className="wizard-step">
                                 <h5 className="mb-4 fw-bold">Step 4: Cargo Details</h5>
+                                <div className="mb-3">
+                                    <label className="form-label text-muted small fw-bold">Commodity</label>
+                                    <select className="form-control-glass" name="commodity_id" value={formData.commodity_id} onChange={handleChange} required>
+                                        <option value="">Select a Commodity</option>
+                                        {commodities.map((c: any) => (
+                                            <option key={c.id} value={c.id}>{c.commodity_name} ({c.commodity_code})</option>
+                                        ))}
+                                    </select>
+                                </div>
                                 <div className="mb-3">
                                     <label className="form-label text-muted small fw-bold">Total Quantity</label>
                                     <input type="number" className="form-control-glass" name="quantity" value={cargoData.quantity} onChange={handleCargoChange} placeholder="e.g. 1000" />
@@ -228,6 +287,7 @@ export default function ShipmentCreate() {
                                     <p className="mb-1"><strong>Assigned Vessel:</strong> {getVesselName(formData.vessel_id)}</p>
                                     <hr />
                                     <p className="mb-1"><strong>Cargo Weight:</strong> {cargoData.weight ? `${cargoData.weight} KG` : 'Not Set'}</p>
+                                    <p className="mb-1"><strong>Commodity:</strong> {commodities.find((c: any) => c.id === formData.commodity_id)?.commodity_name || 'Not Set'}</p>
                                     <p className="mb-1"><strong>Container:</strong> {containerData.container_number || 'None assigned yet'}</p>
                                 </div>
                             </div>

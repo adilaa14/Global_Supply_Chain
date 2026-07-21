@@ -23,7 +23,7 @@ return new class extends Migration
 
         Schema::create('country_economies', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('country_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('country_id')->constrained()->cascadeOnDelete();
             $table->decimal('gdp', 20, 2)->nullable(); // in USD
             $table->decimal('gdp_growth', 5, 2)->nullable(); // percentage
             $table->decimal('inflation_rate', 5, 2)->nullable();
@@ -39,7 +39,7 @@ return new class extends Migration
 
         Schema::create('country_risks', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('country_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('country_id')->constrained()->cascadeOnDelete();
             $table->decimal('political_risk', 5, 2)->nullable();
             $table->decimal('economic_risk', 5, 2)->nullable();
             $table->decimal('natural_disaster_risk', 5, 2)->nullable();
@@ -54,7 +54,7 @@ return new class extends Migration
 
         Schema::create('country_trade_statistics', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('country_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('country_id')->constrained()->cascadeOnDelete();
             $table->decimal('total_import', 20, 2)->nullable();
             $table->decimal('total_export', 20, 2)->nullable();
             $table->decimal('trade_balance', 20, 2)->nullable();
@@ -69,7 +69,7 @@ return new class extends Migration
 
         Schema::create('country_regulations', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('country_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('country_id')->constrained()->cascadeOnDelete();
             $table->string('regulation_type'); // e.g., 'Import', 'Export', 'Tariff', 'Sanction'
             $table->text('description');
             $table->string('severity')->nullable(); // High, Medium, Low
@@ -79,7 +79,7 @@ return new class extends Migration
 
         Schema::create('country_rankings', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('country_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('country_id')->constrained()->cascadeOnDelete();
             $table->decimal('logistics_performance_index', 5, 2)->nullable();
             $table->decimal('ease_of_doing_business', 5, 2)->nullable();
             $table->decimal('corruption_perception_index', 5, 2)->nullable();
@@ -91,7 +91,7 @@ return new class extends Migration
 
         Schema::create('country_opportunities', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('country_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('country_id')->constrained()->cascadeOnDelete();
             $table->decimal('demand_growth', 5, 2)->nullable();
             $table->decimal('import_opportunity_score', 5, 2)->nullable();
             $table->decimal('export_opportunity_score', 5, 2)->nullable();
@@ -107,7 +107,7 @@ return new class extends Migration
         
         Schema::create('country_trade_agreements', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('country_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('country_id')->constrained()->cascadeOnDelete();
             $table->string('agreement_name');
             $table->string('partner_countries')->nullable();
             $table->string('status')->nullable();

@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('user_favorites', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('country_id')->constrained('countries')->cascadeOnDelete();
+            $table->foreignUuid('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('country_id')->constrained('countries')->cascadeOnDelete();
             $table->timestamps();
 
             // A user can only favorite a specific country once

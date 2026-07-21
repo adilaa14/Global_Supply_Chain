@@ -44,13 +44,15 @@ export default function Dashboard() {
                 // Fetch alerts
                 const alertsRes = await axios.get('/api/dashboard/alerts?limit=5');
                 if (alertsRes.data.status === 'success') {
-                    setAlerts(alertsRes.data.data);
+                    const alertsData = alertsRes.data.data;
+                    setAlerts(Array.isArray(alertsData) ? alertsData : []);
                 }
                 
                 // Fetch shipments for map
                 const shipmentsRes = await axios.get('/api/shipments');
                 if (shipmentsRes.data.status === 'success') {
-                    setShipments(shipmentsRes.data.data.data || []);
+                    const shipsData = shipmentsRes.data.data.data || [];
+                    setShipments(Array.isArray(shipsData) ? shipsData : (Array.isArray(shipmentsRes.data.data) ? shipmentsRes.data.data : []));
                 }
             } catch (error) {
                 console.error("Error fetching dashboard data:", error);

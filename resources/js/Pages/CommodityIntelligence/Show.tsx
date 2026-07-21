@@ -322,11 +322,22 @@ export default function CommodityShow({ commodityId }: { commodityId: string }) 
                                                     <td>
                                                         <div className="d-flex align-items-center gap-2">
                                                             <div className="d-flex align-items-center justify-content-center bg-light rounded overflow-hidden" style={{ width: '30px', height: '24px' }}>
-                                                                {cp.country?.iso_code ? (
-                                                                    <img src={`https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.0.0/flags/4x3/${cp.country.iso_code.toLowerCase()}.svg`} alt={cp.country.iso_code} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                                                ) : (
-                                                                    <span style={{ fontSize: '14px' }}>{cp.country?.flag || '🏳️'}</span>
+                                                                {cp.country?.iso_code && (
+                                                                    <img 
+                                                                        src={`https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.0.0/flags/4x3/${cp.country.iso_code.toLowerCase()}.svg`} 
+                                                                        alt={cp.country.iso_code} 
+                                                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                                                                        onError={(e) => {
+                                                                            e.currentTarget.style.display = 'none';
+                                                                            if (e.currentTarget.nextElementSibling) {
+                                                                                (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'block';
+                                                                            }
+                                                                        }}
+                                                                    />
                                                                 )}
+                                                                <span style={{ fontSize: '14px', display: cp.country?.iso_code ? 'none' : 'block' }}>
+                                                                    {cp.country?.flag || '🏳️'}
+                                                                </span>
                                                             </div>
                                                             <span className="fw-bold">{cp.country?.country_name || 'Unknown'}</span>
                                                         </div>

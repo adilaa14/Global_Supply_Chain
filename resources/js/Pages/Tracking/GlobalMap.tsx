@@ -203,7 +203,12 @@ export default function GlobalMap() {
                                 <Popup>
                                     <div style={{ minWidth: '180px' }}>
                                         <h6 className="fw-bold border-bottom pb-2 mb-2 d-flex align-items-center gap-2">
-                                            <img src={`https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/${data.iso.toLowerCase()}.svg`} width="20" alt={data.iso} />
+                                            <img 
+                                                src={`https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/${data.iso.toLowerCase()}.svg`} 
+                                                width="20" 
+                                                alt={data.iso} 
+                                                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                            />
                                             {data.country}
                                         </h6>
                                         {activeWeather ? (

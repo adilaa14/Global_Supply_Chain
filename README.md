@@ -1,58 +1,112 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Global Chain Platform
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+![Laravel](https://img.shields.io/badge/Laravel-11.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)
+![React](https://img.shields.io/badge/React-18.x-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![Inertia.js](https://img.shields.io/badge/Inertia.js-Modern%20Monolith-9553E9?style=for-the-badge)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-005C84?style=for-the-badge&logo=mysql&logoColor=white)
 
-## About Laravel
+**Global Chain** is an enterprise-scale, interactive, data-driven web application designed for global supply chain visibility, logistics tracking, and geopolitical risk intelligence. Built with a modern monolithic architecture using **Laravel 11, React (via Inertia.js), and Tailwind CSS**, this platform serves as an advanced command center for importers, exporters, and logistics administrators.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Core Features
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Real-Time Vessel Tracking**
+  Interactive global maps built with Leaflet.js and OpenStreetMap. Monitor live ship movements, speed, heading, ETA, and dynamically redirect vessels across maritime trunk routes (e.g., Malacca Strait, Suez Canal, Trans-Pacific).
+  
+- **Macroeconomic Visualization**
+  Live historical data integration via the **World Bank Open Data API**. Track GDP Growth, Inflation Rates, and Exchange Rate trends (LCU/USD) with beautiful interactive charts using Chart.js.
 
-## Learning Laravel
+- **Currency Impact Dashboard**
+  Real-time foreign exchange spot rates and historical trend analysis powered by the **Frankfurter API (ECB)**, enabling operational hedging and daily currency conversion.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+- **Risk Scoring Engine**
+  A sophisticated algorithmic engine that calculates supply chain risks for every country based on:
+  - **Weather Risk:** Real-time storm and typhoon warnings (Open-Meteo API).
+  - **Economic & Currency Risk:** Inflation and FX volatility.
+  - **Political Risk:** News sentiment analysis.
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- **Logistics & Trade Intelligence**
+  A live news feed aggregating global supply chain, logistics, and macroeconomic news via **Google News RSS**, enhanced with high-resolution dynamic thumbnails generated from the **Pexels Image CDN**.
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+- **Enterprise Administration**
+  Comprehensive admin panel for user roles, robust system configuration, and a transparent "API Integrations" health-check monitor.
 
-## Agentic Development
+---
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## API Integrations
 
-```bash
-composer require laravel/boost --dev
+Global Chain relies on a robust ecosystem of external data providers. The platform seamlessly integrates **10 distinct APIs**:
 
-php artisan boost:install
-```
+1. **Open-Meteo API** (Weather Risk) - Free weather forecasts and historical data.
+2. **World Bank API** (Intelligence) - Country GDP, macroeconomic indicators.
+3. **REST Countries API** (Intelligence) - Baseline sovereign state data.
+4. **Frankfurter / ExchangeRate API** (Financial) - Real-time currency exchange rates.
+5. **Marine Traffic Alternative / Datalastic** (Vessel Tracking) - AIS vessel location data.
+6. **OpenStreetMap** (Mapping) - Geographic data and basemap tiles.
+7. **Google News RSS API** (Intelligence) - Real-time global news aggregation.
+8. **Pexels Image API** (UI/UX) - Dynamic high-res thumbnail generation.
+9. **World Ports Dataset [GitHub Raw]** (Dataset) - Comprehensive global port coordinates.
+10. **UI Avatars API** (UI/UX) - Dynamic user profile picture generation.
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+---
 
-## Contributing
+## Architecture & Scale
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- **Scale:** 15-20+ database tables, 30+ endpoints.
+- **Pattern:** Adheres to the **Service-Repository Pattern** to keep controllers incredibly lean while handling complex business logic (like Risk Scoring and Route Optimization) in dedicated service classes.
+- **Frontend Paradigm:** Single Page Application (SPA) feel with Server-Side Routing via **Inertia.js**, eliminating the need for complex state management APIs (like Redux or separate REST/GraphQL setups).
 
-## Code of Conduct
+---
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Getting Started
 
-## Security Vulnerabilities
+### Prerequisites
+- PHP 8.2+
+- Composer
+- Node.js & npm
+- MySQL
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### Installation
 
-## License
+1. **Clone the repository & Install Dependencies:**
+   ```bash
+   composer install
+   npm install
+   ```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+2. **Environment Setup:**
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
+   *Configure your `DB_*` settings inside the `.env` file.*
+
+3. **Database Migration & Seeding:**
+   This project relies heavily on seeded data for the initial simulation (Vessels, Ports, Countries, News).
+   ```bash
+   php artisan migrate:fresh --seed
+   ```
+
+4. **Build Frontend Assets:**
+   ```bash
+   npm run build
+   # Or for active development: npm run dev
+   ```
+
+5. **Serve the Application:**
+   ```bash
+   php artisan serve
+   ```
+
+---
+
+## Roles & Authentication
+
+The default seeder provides the following accounts:
+- **Admin:** `admin@globalsupply.com` (password: `password`)
+- **Importer:** `importer@acme.com` (password: `password`)
+- **Exporter:** `exporter@zenith.com` (password: `password`)
+
+Enjoy tracking the global supply chain! 

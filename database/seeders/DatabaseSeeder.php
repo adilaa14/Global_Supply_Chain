@@ -116,6 +116,7 @@ class DatabaseSeeder extends Seeder
             VesselSeeder::class,
             CommodityIntelligenceSeeder::class,
             TradeIntelligenceSeeder::class,
+            NewsSeeder::class,
         ]);
     }
 }

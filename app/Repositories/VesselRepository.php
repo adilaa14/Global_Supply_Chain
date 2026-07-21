@@ -10,6 +10,9 @@ class VesselRepository
     public function getAllActiveVessels(): Collection
     {
         return Vessel::where('status', 'Active')
+            ->whereHas('shipments', function ($query) {
+                $query->whereIn('status', ['Preparing', 'In Transit']);
+            })
             ->with(['latestPosition', 'activeRoute.destinationPort'])
             ->get();
     }

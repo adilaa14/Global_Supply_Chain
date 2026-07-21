@@ -3,6 +3,7 @@ import { Head, Link } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import Select from 'react-select';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -68,9 +69,42 @@ export default function VesselDetail({ vesselId }: { vesselId: string }) {
         };
 
         fetchLiveData();
-        const interval = setInterval(fetchLiveData, 60000);
+        const interval = setInterval(fetchLiveData, 10000);
         return () => clearInterval(interval);
     }, [vesselId]);
+
+    const customSelectStyles = {
+        control: (provided: any, state: any) => ({
+            ...provided,
+            background: 'rgba(255, 255, 255, 0.9)',
+            border: state.isFocused ? '1px solid #3b82f6' : '1px solid #e2e8f0',
+            borderRadius: '0.75rem',
+            padding: '4px',
+            boxShadow: state.isFocused ? '0 0 0 3px rgba(59, 130, 246, 0.1)' : 'none',
+            '&:hover': {
+                border: '1px solid #3b82f6'
+            }
+        }),
+        menu: (provided: any) => ({
+            ...provided,
+            borderRadius: '0.75rem',
+            overflow: 'hidden',
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+            zIndex: 9999
+        }),
+        option: (provided: any, state: any) => ({
+            ...provided,
+            backgroundColor: state.isSelected ? '#3b82f6' : state.isFocused ? 'rgba(59, 130, 246, 0.1)' : 'white',
+            color: state.isSelected ? 'white' : '#1e293b',
+            cursor: 'pointer',
+            padding: '10px 12px',
+        }),
+    };
+
+    const portOptions = ports.map((p: any) => ({
+        value: p.id,
+        label: `⚓ ${p.port_name} (${p.country?.country_name || 'Global'})`
+    }));
 
     // Live smooth movement simulation
     useEffect(() => {
@@ -275,16 +309,15 @@ export default function VesselDetail({ vesselId }: { vesselId: string }) {
                             <h5 className="panel-title mb-4">Route Management</h5>
                             <div className="mb-3">
                                 <label className="form-label text-muted small fw-bold">REDIRECT DESTINATION (PORT)</label>
-                                <select 
-                                    className="form-select bg-light border-light mb-3"
-                                    value={selectedPort}
-                                    onChange={e => setSelectedPort(e.target.value)}
-                                >
-                                    <option value="">-- Select Target Port --</option>
-                                    {ports.map(p => (
-                                        <option key={p.id} value={p.id}>⚓ {p.port_name} ({p.country?.country_name || 'Global'})</option>
-                                    ))}
-                                </select>
+                                <Select
+                                    options={portOptions}
+                                    styles={customSelectStyles}
+                                    placeholder="-- Search Target Port --"
+                                    isSearchable={true}
+                                    value={portOptions.find((o: any) => o.value === selectedPort) || null}
+                                    onChange={(selectedOption: any) => setSelectedPort(selectedOption ? selectedOption.value : '')}
+                                    className="mb-3"
+                                />
                                 <button 
                                     className="btn btn-primary w-100 fw-bold d-flex align-items-center justify-content-center gap-2"
                                     onClick={handleRedirect}
