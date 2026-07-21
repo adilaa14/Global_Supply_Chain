@@ -212,7 +212,7 @@ export default function AuthenticatedLayout({
                                         <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=F03164&color=fff`} alt="User" />
                                         <div className="user-info">
                                             <span className="user-name">{user.name}</span>
-                                            <span className="user-role">Administrator</span>
+                                            <span className="user-role">{(usePage().props.auth as any).roles?.[0] || 'User'}</span>
                                         </div>
                                         <span className="material-symbols-outlined" style={{ color: 'var(--text-muted)', marginLeft: '5px' }}>arrow_drop_down</span>
                                     </div>
